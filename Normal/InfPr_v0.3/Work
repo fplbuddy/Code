@@ -1,0 +1,23 @@
+4 Apr
+--------
+Started with v2.5 from RBC
+Removed Pr
+Changed numerics
+Got rid of one of the complex arrays 
+Changed CFL condition, got rid of the order 2 case.
+Have done some pretty big changes in CFL condition. Should probably apply these to RBC Code as well
+
+6 Apr
+--------
+Main diff from 0.1 is that we do not include anything for dy in CFL. Also, I have added the factor of pi we were missing in dx.
+
+7 Apr
+--------
+Think it might be pointless to have kinetic injection rate etc?
+Have non-dimmed the wavenumbers
+removed the initial conditions option
+changes to spectra. outputs in units of Ly*pi
+
+9 Feb 21
+-------
+Have cleaned it up, removed ps dependance partially

@@ -1,0 +1,4 @@
+0                  % last output file
+0.0                % time of last output
+1                  % mult timestep multiplier
+2                  % convs, used in ICs 6. 1 - something from FORTRAN, 2 - From MATLAB, 3 - low dom approx,else - random

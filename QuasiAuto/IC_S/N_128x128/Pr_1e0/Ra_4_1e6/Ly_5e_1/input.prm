@@ -1,0 +1,21 @@
+  /Users/philipwinchester/Dropbox/Codes/QuasiAuto/IC_S/N_128x128/Pr_1e0/Ra_4_1e6/Ly_5e_1/Fields
+  /Users/philipwinchester/Dropbox/Codes/QuasiAuto/IC_S/N_128x128/Pr_1e0/Ra_4_1e6/Ly_5e_1/Checks
+  /Users/philipwinchester/Dropbox/Codes/QuasiAuto/IC_S/N_128x128/Pr_1e0/Ra_4_1e6/Ly_5e_1/Spectra
+  4.10e6         % Ra
+  1.00e0            % Pr
+  5.00e-1           % Ly = this*pi
+  1.0           % CFL
+  5     % step
+  1000000        % tstep
+  1000000        % sstep
+  1           % cstep
+  1.0           % Lx = this*2*pi
+  1.0           % Lz = this*pi
+  1.0           % theta20
+  1.0           % u0
+  1.0e-4          % thetav0
+  1.0e-4          % ph0
+  3             % InC. 1 - Random 2 - both Matlab 3 - 2d matlab, 3d random
+  19950806      % Seed
+  0            % If we want to normalise the IC
+  1            % If we want to normalise the IC

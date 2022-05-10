@@ -1,0 +1,4 @@
+0                  % last output file
+0.0                % time of last output
+0                  % zonal mean flow stats
+1                  % mult timestep multiplier

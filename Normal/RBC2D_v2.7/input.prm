@@ -1,0 +1,19 @@
+  /mi/share/scratch/winchester/CODES/T_Coupling/RBC2D_v2.3/Fields
+  /mi/share/scratch/winchester/CODES/T_Coupling/RBC2D_v2.3/Checks
+  /mi/share/scratch/winchester/CODES/T_Coupling/RBC2D_v2.3/Spectra
+  x.xex         % Ra
+  x.x           % Pr
+  50000000      % step
+  500000        % tstep
+  500000        % sstep
+  500           % cstep
+  1.0           % Lx
+  1.0           % Ly
+  1.0           % theta0
+  1.0           % u0
+  1             % kmanymin 
+  4             % kmanymax
+  1             % kxone
+  0             % kyone  
+  0             % InC. 0 - Uses kxone and krone. 1 - Used kmanymin and kmanymax. 2 - Is god for shearing. 3 - Is not good for shearing
+

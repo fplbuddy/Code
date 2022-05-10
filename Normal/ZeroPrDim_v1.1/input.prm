@@ -1,0 +1,16 @@
+  /Fields
+  /Checks
+  /Spectra
+  x.xex         % nu
+  50000000      % step
+  5000000        % tstep
+  1000000        % sstep
+  500           % cstep
+  1.0           % Lx
+  1.0           % Ly
+  1.0           % u0
+  4             % kup
+  10             % kdn
+  x             % InC. 0 - Uses kup and kdn.
+  19950806      % Seed
+  x             % If we want to normalise the IC

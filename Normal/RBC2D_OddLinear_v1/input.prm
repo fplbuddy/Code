@@ -1,0 +1,14 @@
+  /Fields
+  /Checks
+  /Spectra
+  x.xex         % Ra
+  x.x           % Pr
+  5000000      % step
+  1000000        % tstep
+  1000000        % sstep
+  500           % cstep
+  1.0           % Lx
+  1.0           % Ly
+  19950806      % Seed
+  1.0e-10       % size of pertubation
+  1.0e-20       % for convergance

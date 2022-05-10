@@ -1,0 +1,7 @@
+85           # ifile: filenumber 
+256          # n: old grid size
+16           # Nnodes: old number of nodes (i.e. number of slices)
+512          # m: new grid size (m>n)
+16           # Mnodes: new number of nodes (i.e. number of slices)
+/mi/share/scratch/dallas/Coding/HD/2D_box/Data/SQG/tmp/Fields/
+./Output/

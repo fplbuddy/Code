@@ -1,0 +1,19 @@
+29 Apr
+Started with v0.2 from Inf Pr
+Change the numerics, Done
+Change CFL condition
+--------
+21 Dec
+Fix numerics, check that non-dim is ok
+Is FFT ok? I think so! But may be something I want to check - maybe tmp needs changing?
+--------
+2 Feb
+Remove theta equation to simplify
+--------
+29 June
+Fix ny/nx bug in CFL condition
+Pasted the faster version of oeenegy
+Have changed ICs sliglht
+--------
+5 July
+ICs 3 now takes a .txt file

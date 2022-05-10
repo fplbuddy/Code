@@ -1,0 +1,19 @@
+  /scratch/winchester/AR_2/Low_Dim/64x64/RBC2D_v2.8_test/Fields
+  /scratch/winchester/AR_2/Low_Dim/64x64/RBC2D_v2.8_test/Checks
+  /scratch/winchester/AR_2/Low_Dim/64x64/RBC2D_v2.8_test/Spectra
+  6.4e6         % Ra
+  30.0           % Pr
+  1      % step
+  1        % tstep
+  1        % sstep
+  1           % cstep
+  1.0           % Lx
+  1.0           % Ly
+  1.0           % theta0
+  1.0           % u0
+  1             % kmanymin 
+  4             % kmanymax
+  4             % kxone
+  9             % kyone  
+  0             % InC. 0 - Uses kxone and krone. 1 - Used kmanymin and kmanymax. 2 - Is god for shearing. 3 - Is not good for shearing
+

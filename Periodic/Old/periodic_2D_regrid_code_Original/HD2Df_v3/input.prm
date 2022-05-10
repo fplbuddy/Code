@@ -1,0 +1,25 @@
+  1.0                % dt
+  100000             % step
+  10000              % tstep
+  1000               % sstep
+  50                 % cstep
+  1.0e5              % f0
+  1.0                % u0
+  14                 % kup
+  18                 % kdn
+  4                  % kfup 16 for 256
+  4                  % kfdn 16 for 256
+  1                  % ordvf 
+  0                  % ordvh  
+  1.e-3              % nu 0.001 for 256
+  0.01               % hnu 0.5 (hypo visc)
+  1                  % iflow
+  3                  % ftype
+ -1.0                % cort
+  14071981           % seed
+  1.0                % prm1
+  1.0                % prm2
+./Fields
+./Checks
+./Spectra
+./Transfers

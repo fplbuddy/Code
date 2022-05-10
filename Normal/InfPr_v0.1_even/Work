@@ -1,0 +1,2 @@
+7 Oct 21
+Uses PrInf_v0.3 as base. Will do it so that ICs are SCRS (from MATLAB) + most unstable perturbation. Then will just evolve the even equations.

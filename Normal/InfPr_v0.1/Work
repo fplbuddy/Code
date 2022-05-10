@@ -1,0 +1,8 @@
+4 Apr
+--------
+Started with v2.5 from RBC
+Removed Pr
+Changed numerics
+Got rid of one of the complex arrays 
+Changed CFL condition, got rid of the order 2 case.
+Have done some pretty big changes in CFL condition. Should probably apply these to RBC Code as well

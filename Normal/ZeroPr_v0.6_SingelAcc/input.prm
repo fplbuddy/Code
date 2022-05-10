@@ -1,0 +1,14 @@
+  /Fields
+  /Checks
+  /Spectra
+  1.0e6            % RaA
+  1.0                % CFL
+  100000000            % step
+  50000000             % tstep
+  50000000              % sstep
+  500                % cstep
+  1.0                % Lx
+  1.0                % Ly
+  14071981           % seed
+  2                  % InC
+  1.0e2              % OEEF

@@ -1,0 +1,33 @@
+# .bashrc
+
+# aliases
+alias vi='vim'
+alias hh='history'
+alias data='cd /data/math-turb/kebl6245/'
+alias octave='octave --no-gui'
+#alias octave='octave --no-gui -q'
+alias sqq='squeue -u kebl6245 -l'
+alias sidle='sinfo -N | grep idle'
+
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+	. /etc/bashrc
+fi
+
+bind '"\e[1;5D" backward-word' 
+bind '"\e[1;5C" forward-word'
+
+# User specific aliases and functions
+#module load octave
+## arcus-b
+module load intel-compilers/2013
+#module load mvapich2/2.0.1__intel-2013
+module load openmpi/1.8.4__intel-2013
+## arcus-htc
+#module load mvapich2/2.0.1__intel_2013
+module load openmpi/1.8.3__intel-2013 
+
+# fftw library
+#export LD_LIBRARY_PATH="/system/software/linux-x86_64/lib/fftw/2.1.5__mvapich2_2.1.0/double/lib"
+#export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/system/software/linux-x86_64/lib/fftw/3.3.3__intel-2013/double/lib
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/system/software/linux-x86_64/lib/fftw/3.3.4__intel-2013/double/lib

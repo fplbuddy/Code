@@ -1,0 +1,5 @@
+0                  % last output file
+0.0                % time of last output
+1                  % zonal mean flow stats
+1                  % mult timestep multiplier
+1                  % if we start conv from ICs

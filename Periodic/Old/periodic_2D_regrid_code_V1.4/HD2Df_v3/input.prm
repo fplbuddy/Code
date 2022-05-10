@@ -1,0 +1,22 @@
+  /Fields
+  /Checks
+  /Spectra
+  x.xex              % nu
+  x.xex                % kappa
+  x.xex              % mu
+  0.0                DT
+  1000000             % step
+  100000              % tstep
+  10000               % sstep
+  500                 % cstep
+    1.0                % dt
+  1.0                % u0
+  1.0                % theta0
+  x.xex                % f
+  14                 % kup
+  18                 % kdn
+  1                  % ordvf
+  1                  % ordvh
+  1                  % iflow
+ -1.0                % cort
+  14071981           % seed

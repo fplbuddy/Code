@@ -1,0 +1,20 @@
+  ./Fields
+  ./Checks
+  ./Spectra
+  ./Transfers
+  x.xex              % Ra
+  x.x                % mu
+  100000             % step
+  10000              % tstep
+  1000               % sstep
+  50                 % cstep
+  1                  % ordvf
+  1                  % ordvh
+  1.0                % u0
+  1.0                % CFL
+  14                 % kup
+  18                 % kdn
+ -1.0                % cort
+  14071981           % seed
+  1.0                % prm1
+  1.0                % prm2

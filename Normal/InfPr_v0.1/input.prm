@@ -1,0 +1,19 @@
+  1.0                % CFL
+  100000            % step
+  20000             % tstep
+  2000              % sstep
+  1                % cstep
+  1.0                % Lx
+  1.0                % Ly
+  0.0                % Dkk
+  1.0                % theta0
+  1.0                % u0
+  1                  % kup 
+  4                  % kdn  
+  1.0e8            % Ra
+  14071981           % seed
+  2              % InC. 0 - Random, 1 - Superposition of sine waves, 2 - good for burst, 3 - good for not sheering 
+/Fields
+/Checks
+/Spectra
+/Transfers

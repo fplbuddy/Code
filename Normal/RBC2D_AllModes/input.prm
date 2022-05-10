@@ -1,0 +1,20 @@
+  /Fields
+  /Checks
+  /Spectra
+  x.xex         % Ra
+  x.x           % Pr
+  50000000      % step
+  500000        % tstep
+  500000        % sstep
+  500           % cstep
+  x.x           % Lx
+  x.x           % Ly
+  x.x           % theta0
+  x.x           % u0
+  1             % kmanymin 
+  4             % kmanymax
+  x             % kxone
+  x             % kyone  
+  x             % InC. 0 - Uses kxone and krone. 1 - Used kmanymin and kmanymax. 2 - Is god for shearing. 3 - Is not good for shearing. 4 - Random
+  19950806      % Seed
+

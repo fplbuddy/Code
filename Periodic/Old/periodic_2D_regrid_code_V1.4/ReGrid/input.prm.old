@@ -1,0 +1,7 @@
+14           # ifile: filenumber 
+1024         # n: old grid size
+512          # Nnodes: old number of nodes (i.e. number of slices)
+2048         # m: new grid size (m>n)
+1024         # Mnodes: new number of nodes (i.e. number of slices)
+/home/vdallas/Coding/MHD/Data/Imbalanced/R1024a70/Fields/
+/home/vdallas/Coding/MHD/Data/Imbalanced/R2048a70/Fields/

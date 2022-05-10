@@ -1,0 +1,2 @@
+started with 2.4 as base
+have included that i input Rhnu as IC rather than mu

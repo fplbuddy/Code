@@ -1,0 +1,23 @@
+  /Fields
+  /Checks
+  /Spectra
+  x.xex         % Ra
+  x.x           % Pr
+  5000000      % step
+  1000000        % tstep
+  1000000        % sstep
+  500           % cstep
+  1.0           % Lx
+  1.0           % Ly
+  1.0           % theta0
+  1.0           % u0
+  1             % kmanymin
+  4             % kmanymax
+  4             % kxone
+  9             % kyone
+  x             % InC. 0 - Uses kxone and krone. 1 - Used kmanymin and kmanymax. 2 - Is god for shearing. 3 - Is not good for shearing. 4 - Random. 5 - from matlab 6 - for even steady state 
+  19950806      % Seed
+  x             % If we want a small perubation to the IC
+  x             % If we want to normalise the IC
+  1.0e-10       % size of pertubation
+  1.0e-20       % for convergance 

@@ -1,0 +1,6 @@
+17 Feb
+Have set Ra and Pr as the input parameters
+have also added specmax
+----------
+28 Feb
+Have changed the initial conditiaons so that they are avaluated insude a box (ie 1.0do to 0.5do)

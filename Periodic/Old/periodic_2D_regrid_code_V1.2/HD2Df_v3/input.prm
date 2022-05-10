@@ -1,0 +1,21 @@
+  /scratch/winchester/Periodic/periodic_2D_regrid_code_V1/HD2Df_v3/Fields
+  /scratch/winchester/Periodic/periodic_2D_regrid_code_V1/HD2Df_v3/Checks
+  /scratch/winchester/Periodic/periodic_2D_regrid_code_V1/HD2Df_v3/Spectra
+  1.0e3              % Ra
+  1.0                % Pr
+  1.0              % Rh
+  10             % step
+  10              % tstep
+  10               % sstep
+  1                 % cstep
+    1.0                % dt
+  1.0                % u0
+  1.0                % theta0
+  1.0                % f
+  14                 % kup
+  18                 % kdn
+  1                  % ordvf
+  0                  % ordvh
+  1                  % iflow
+ -1.0                % cort
+  14071981           % seed

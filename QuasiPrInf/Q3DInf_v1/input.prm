@@ -1,0 +1,18 @@
+  /Fields
+  /Checks
+  /Spectra
+  x.xex         % Ra
+  x.xex           % W
+  1.0           % CFL
+  4000000     % step
+  1000000        % tstep
+  1000000        % sstep
+  500           % cstep
+  1.0           % Lx
+  1.0           % Ly
+  1.0           % theta20
+  1.0e-4          % thetav0
+  3             % InC. 1 - Random 2 - both Matlab 3 - 2d matlab, 3d random
+  19950806      % Seed
+  0            % If we want to normalise the IC
+ 1            % If we want to normalise the IC

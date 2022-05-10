@@ -1,0 +1,17 @@
+1 Oct
+Removed the stop of proc 0
+Added theta
+Add Ra, Pr, nu, kappa
+Change equations
+Change ICs and input
+Change field output
+Have added fielders
+-----
+4 Oct (V2)
+Add forcing. Doing it straight in Fourier space, but seems to work with comparison with doing it in real space
+Add drag
+Add extra CFL condition
+Added hyper viscosity
+
+To do:
+Calculate Fluxes

@@ -1,0 +1,11 @@
+  /Fields
+  /Checks
+  /Spectra
+  x.xex         % Ra
+  x.x           % Pr
+  5000000      % step
+  1000000        % tstep
+  1000000        % sstep
+  500           % cstep
+  x.x           % Lx
+  1.0           % Ly

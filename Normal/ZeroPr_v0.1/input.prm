@@ -1,0 +1,18 @@
+  1.0                % CFL
+  1000000            % step
+  20000             % tstep
+  2000              % sstep
+  50                % cstep
+  1.0                % Lx
+  1.0                % Ly
+  0.0                % Dkk
+  1.0                % theta0
+  1.0                % u0
+  1                  % kup 
+  4                  % kdn  
+  1.0e8            % Ra
+  14071981           % seed
+/Fields
+/Checks
+/Spectra
+/Transfers

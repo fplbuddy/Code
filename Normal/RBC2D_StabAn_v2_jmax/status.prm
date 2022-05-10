@@ -1,0 +1,4 @@
+0                  % last output file, if 1, treat it as IC
+0.0                % time of last output
+1                  % mult timestep multiplier
+0                  % EvenSteadystateDone

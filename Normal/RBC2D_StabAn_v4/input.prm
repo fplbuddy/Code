@@ -1,0 +1,15 @@
+  /scratch/winchester/StabAn/152x152/RBC2D_StabAn/Fields
+  /scratch/winchester/StabAn/152x152/RBC2D_StabAn/Checks
+  /scratch/winchester/StabAn/152x152/RBC2D_StabAn/Spectra
+  1.1e5         % Ra
+  1.0e2           % Pr
+  5000000      % step
+  1000000        % tstep
+  1000000        % sstep
+  500           % cstep
+  1.0           % Lx
+  1.0           % Ly
+  3             % InC. 1 - Fortran. 2 - Low dim approx
+  19950806      % Seed
+  1.0e-3       % for convergance
+  1.0e-10      % pert size

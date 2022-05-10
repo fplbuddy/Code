@@ -1,0 +1,50 @@
+4 June
+Going to change so that we can output as many fields and 2d spectra as we can speactra
+-----
+V2.9
+-----
+11 June
+Some bug fixes and also output theta 2d spectrum
+-----
+v2.10
+-----
+15 June
+Have possibility of random ICs
+-----
+v2.11
+-----
+26 June
+Includes e/o energy decomp
+-----
+v2.12
+-----
+20 Aug
+Added so that MATLAB can be used as ICs
+-----
+v2.13
+-----
+9 Aug
+Added pert and set up a new ICs which converges to the even steady state
+-----
+23 Nov
+I have tried to amend IC.5 so that it takes N = 172. Hopefully it will work. It seems to!
+-----
+24 Nov
+Have made slight amendment to IC.6 so that it can take Matlab as ICs. Have also added some comments. There is PLENTY of cleaning that needs to be done.
+-----
+21 Feb
+-----
+The perturbation can include even modes now
+Another IC which is the new steady state that we have found. Both odd and even modes
+Have added matlabeig
+-----
+20 July 21
+Bug in CFL fixed, and have increased time step to what I think is right
+Remove znl
+Remove kxone, kmanyx 
+Faster oeenergy subrut
+Think I have fixed the Matlab input
+Have fixed hdcheck
+Have added OEEF
+Fixed kxmax and kymax
+
