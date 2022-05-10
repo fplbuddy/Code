@@ -742,15 +742,14 @@ PROGRAM HD2D
       CALL poisson(C1,C2,C4)  ! make u grad theta2
       CALL laplak2(C1,C3)     ! make W
       CALL poisson(C1,C3,C3)  ! u grad w. Poisson bracket
+      CALL poisson(C5,C2,C10) ! {phi, theta2}
       ! do the filtering on 2d modes
       DO i = ista,iend
         DO j = 1,ny
-          IF (kk2(j,i).le.twodmax) THEN
-            C7(j,i) = C1(j,i)
-            C10(j,i) = C2(j,i)
+          IF (j.eq.1.and.i.eq.1) THEN
+            C7(j,i) = C1(j,i) ! only keep the 1,1 mode
           else
             C7(j,i) = 0.0d0
-            C10(j,i) = 0.0d0
           end if
         END DO
       END DO
@@ -759,7 +758,6 @@ PROGRAM HD2D
       CALL poisson(C7,C6,C9) ! {psi, thetav}
       CALL laplak2(C7,C7) ! nabla^2 psi
       CALL poisson(C5,C7,C7) ! {phi, nabla^2 psi}
-      CALL poisson(C5,C10,C10) ! {phi, theta2}
 
       rmp = 1.0_GP/real(o,kind=GP)
       DO i = ista,iend
@@ -793,15 +791,14 @@ PROGRAM HD2D
     CALL poisson(C1,C2,C4)  ! make u grad theta2
     CALL laplak2(C1,C3)     ! make W
     CALL poisson(C1,C3,C3)  ! u grad w. Poisson bracket
+    CALL poisson(C5,C2,C10) ! {phi, theta2}
     ! do the filtering on 2d modes
     DO i = ista,iend
       DO j = 1,ny
-        IF (kk2(j,i).le.twodmax) THEN
-          C7(j,i) = C1(j,i)
-          C10(j,i) = C2(j,i)
+        IF (j.eq.1.and.i.eq.1) THEN
+          C7(j,i) = C1(j,i) ! only keep the 1,1 mode
         else
           C7(j,i) = 0.0d0
-          C10(j,i) = 0.0d0
         end if
       END DO
     END DO
@@ -810,7 +807,6 @@ PROGRAM HD2D
     CALL poisson(C7,C6,C9) ! {psi, thetav}
     CALL laplak2(C7,C7) ! nabla^2 psi
     CALL poisson(C5,C7,C7) ! {phi, nabla^2 psi}
-    CALL poisson(C5,C10,C10) ! {phi, theta2}
 
     rmp = 1.0_GP/real(o,kind=GP)
     DO i = ista,iend
