@@ -76,7 +76,6 @@ PROGRAM HD2D
   REAL(KIND=GP) :: nu,kappa, Ra, Pr, Wid
   REAL(KIND=GP) :: rmp,rmq
   REAL(KIND=GP) :: enke, enko ! Current even energy, and current odd energy
-  REAL(KIND=GP) :: twodmax ! maximum wavenumber in perp field
 
   INTEGER :: mult,stat, InC, norm,normtwo
   INTEGER :: ordvf,ordvh
@@ -193,7 +192,6 @@ PROGRAM HD2D
     READ(1,*) Ra                       ! 17
     READ(1,*) Pr
     READ(1,*) Wid
-    READ(1,*) twodmax
     READ(1,*) CFL
     READ(1,*) step                     ! 2
     READ(1,*) tstep                    ! 3
@@ -220,7 +218,6 @@ PROGRAM HD2D
     cstep = cstep*mult
     Wid = Wid*pi
   ENDIF
-  CALL MPI_BCAST(  twodmax,  1,GC_REAL,      0,MPI_COMM_WORLD,ierr)
   CALL MPI_BCAST(  CFL,  1,GC_REAL,      0,MPI_COMM_WORLD,ierr)
   CALL MPI_BCAST( step,  1,MPI_INTEGER,  0,MPI_COMM_WORLD,ierr)
   CALL MPI_BCAST(tstep,  1,MPI_INTEGER,  0,MPI_COMM_WORLD,ierr)
