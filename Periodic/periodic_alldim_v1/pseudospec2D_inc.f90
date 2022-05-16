@@ -220,7 +220,7 @@
       INTEGER :: i,j
 
       bloc = 0.0d0
-      tmp = 1.0d0/dble(n)**4 ! Phil: So we are returning 2<a^2> (See parseval theorem notes)
+      tmp = 1.0d0/dble(n)**4 ! Phil: So we are returning 2<a^2> (See parseval theorem notes). May 22: Not so sure, think it might be <a^2>. Parseval is dif for periodic
 
 !
 ! Computes the square of the scalar field
