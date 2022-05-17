@@ -488,7 +488,7 @@ SUBROUTINE inerprod(a,b,kin,rslt)
 END SUBROUTINE inerprod
 
 !*****************************************************************
-SUBROUTINE hdcheck(a,b,d,e,t,ordvf,ordvh)
+SUBROUTINE hdcheck(a,b,t)
   !-----------------------------------------------------------------
   !
   ! Consistency check for the conservation of energy in HD 2D
@@ -508,58 +508,35 @@ SUBROUTINE hdcheck(a,b,d,e,t,ordvf,ordvh)
 
   IMPLICIT NONE
 
-  COMPLEX(KIND=GP), INTENT(IN), DIMENSION(ny,ista:iend) :: a,b,d,e
+  COMPLEX(KIND=GP), INTENT(IN), DIMENSION(ny,ista:iend) :: a,b
   COMPLEX(KIND=GP), DIMENSION(ny,ista:iend) :: c1
-  DOUBLE PRECISION  :: enk,denk,fenk
-  DOUBLE PRECISION  :: enp,denp
-  DOUBLE PRECISION  :: enk2,denk2,fenk2
-  DOUBLE PRECISION  :: enp2,denp2
-  DOUBLE PRECISION :: enzm,enfl
+  DOUBLE PRECISION  :: enk
+  DOUBLE PRECISION  :: enp
   REAL(KIND=GP) :: t
   REAL(KIND=GP) :: nrm,nrm2,tmp1,tmp2
-  INTEGER :: ordvf,ordvh
   INTEGER :: i,j
 
   !
   ! Computes the mean energy
   !
   CALL energy(a,enk,1)
-  CALL energy(a,denk,1+ordvf)
-  CALL derivk2(a,c1,1)       ! v
-  CALL inerprod(c1,b,0,fenk)  ! integrates v*theta
-
-  CALL energy(d,enk2,1)
-  CALL energy(d,denk2,1+ordvf)
-  CALL derivk2(d,c1,1)
-  CALL inerprod(c1,e,0,fenk2)
 
   !
   ! Computes the mean potential energy
   !
 
   CALL energy(b,enp,0)
-  CALL energy(b,denp,ordvf)
-
-  CALL energy(e,enp2,0)
-  CALL energy(e,denp2,ordvf)
 
   !
   ! Creates external files to store the results
   !
   IF (myrank.eq.0) THEN
     OPEN(1,file=trim(cdir)//'/kenergy.txt',position='append')
-    WRITE(1,20) t,enk,denk,fenk,REAL(a(1,1))*1.0_GP/(real(nx,kind=GP)*real(ny,kind=GP))
+    WRITE(1,20) t,enk,REAL(a(1,1))*1.0_GP/(real(nx,kind=GP)*real(ny,kind=GP))
     20    FORMAT( E23.14E3,E23.14E3,E23.14E3,E23.14E3,E23.14E3,E23.14E3,E23.14E3,E23.14E3 )
     CLOSE(1)
     OPEN(1,file=trim(cdir)//'/penergy.txt',position='append')
-    WRITE(1,20) t,enp,denp
-    CLOSE(1)
-
-    OPEN(1,file=trim(cdir)//'/kenergy2.txt',position='append')
-    WRITE(1,20) t,enk2,denk2,fenk2
-    CLOSE(1)
-    OPEN(1,file=trim(cdir)//'/penergy2.txt',position='append')
-    WRITE(1,20) t,enp2,denp2
+    WRITE(1,20) t,enp
     CLOSE(1)
   ENDIF
 
@@ -567,15 +544,9 @@ SUBROUTINE hdcheck(a,b,d,e,t,ordvf,ordvh)
 END SUBROUTINE hdcheck
 
 !*****************************************************************
-SUBROUTINE hdchecktwo(a,t,delta)
+SUBROUTINE hdcheckperp(d,e,t,filename1,filename2)
   !-----------------------------------------------------------------
   !
-  ! Consistency check for the conservation of energy in HD 2D
-  !
-  ! Parameters
-  !     a  : streamfunction
-  !     t  : time
-  !     b  : temp pertubation (theta)
   !
   USE fprecision
   USE commtypes
@@ -587,22 +558,42 @@ SUBROUTINE hdchecktwo(a,t,delta)
 
   IMPLICIT NONE
 
-  COMPLEX(KIND=GP), INTENT(IN), DIMENSION(ny,ista:iend) :: a
+  COMPLEX(KIND=GP), INTENT(IN), DIMENSION(ny,ista:iend) :: d,e
+  COMPLEX(KIND=GP), DIMENSION(ny,ista:iend) :: c1
+  DOUBLE PRECISION  :: enk2
+  DOUBLE PRECISION  :: enp2
   REAL(KIND=GP) :: t
-  REAL(KIND=GP) :: nrm
-  REAL(KIND=GP) :: delta
+  REAL(KIND=GP) :: nrm,nrm2,tmp1,tmp2
+  INTEGER :: i,j
+  CHARACTER(len=8) :: filename1,filename2
 
 
+  !
+  ! Computes the mean energy
+  !
+
+  CALL energy(d,enk2,1)
+
+  !
+  ! Computes the mean potential energy
+  !
+
+  CALL energy(e,enp2,0)
+  !
+  ! Creates external files to store the results
+  !
   IF (myrank.eq.0) THEN
-    nrm = 1.0_GP/(real(nx,kind=GP)*real(ny,kind=GP))
-    OPEN(1,file=trim(cdir)//'/conv.txt',position='append')
-    WRITE(1,20) t, delta,REAL(a(1,2))*nrm,AIMAG(a(1,2))*nrm,REAL(a(1,4))*nrm,AIMAG(a(1,4))*nrm
-    20    FORMAT( E33.24E3,E33.24E3,E33.24E3,E33.24E3,E33.24E3,E33.24E3 )
+    OPEN(1,file=trim(cdir)//'/'//filename1//'.txt',position='append')
+    WRITE(1,20) t,enk2
+    20    FORMAT( E23.14E3,E23.14E3 )
+    CLOSE(1)
+    OPEN(1,file=trim(cdir)//'/'//filename2//'.txt',position='append')
+    WRITE(1,20) t,enp2
     CLOSE(1)
   ENDIF
 
   RETURN
-END SUBROUTINE hdchecktwo
+END SUBROUTINE hdcheckperp
 
 !*****************************************************************
 SUBROUTINE zonalmean(a,ext,kin)
@@ -774,7 +765,7 @@ SUBROUTINE spectrum(a,b,ext,name)
   INTEGER       :: kmn
   INTEGER       :: i,j
   CHARACTER(len=4), INTENT(IN) :: ext
-  CHARACTER(len=6), INTENT(IN) :: name
+  CHARACTER(len=7), INTENT(IN) :: name
 
   !
   ! Sets Ek to zero

@@ -1,6 +1,7 @@
   ./Fields
   ./Checks
   ./Spectra
+  8
   1.0e0         % Ra
   1.0           % Pr
   1.0           % W

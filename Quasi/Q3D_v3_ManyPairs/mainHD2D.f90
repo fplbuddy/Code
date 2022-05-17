@@ -51,6 +51,7 @@ PROGRAM HD2D
   INTEGER :: cstep
   INTEGER :: sstep
   INTEGER :: size
+  INTEGER :: pairs
   !
   ! streamfunction, vector potential, z component
   ! of the fields and external force matrixes
@@ -80,7 +81,7 @@ PROGRAM HD2D
   INTEGER :: mult,stat, InC, norm,normtwo
   INTEGER :: ordvf,ordvh
   INTEGER :: t,o
-  INTEGER :: i,j,ir,jr
+  INTEGER :: i,j,ir,jr,k
   INTEGER :: ic,id,iu,ix
   INTEGER :: jc,jd,ju,jt
   INTEGER :: timet,timec,times
@@ -90,6 +91,7 @@ PROGRAM HD2D
   CHARACTER        :: c,d,u,th,x
   CHARACTER(len=3) :: node
   CHARACTER(len=4) :: ext4, ext
+  CHARACTER(len=1024) :: filename1,filename2
 
   !
   ! Initializes the MPI library
@@ -120,29 +122,6 @@ PROGRAM HD2D
   FFTW_MEASURE)
   CALL fftp2d_create_plan(plancc,(/nx,ny/),FFTW_COSINE,2,          &
   FFTW_MEASURE)
-
-  !
-  ! Allocates memory for distributed blocks
-
-  ALLOCATE( R1(nx,jsta:jend) )
-  ALLOCATE( R2(nx,jsta:jend) )
-  ALLOCATE( C1(ny,ista:iend) )
-  ALLOCATE( C2(ny,ista:iend) )
-  ALLOCATE( C3(ny,ista:iend) )
-  ALLOCATE( C4(ny,ista:iend) )
-  ALLOCATE( C5(ny,ista:iend) )
-  ALLOCATE( C6(ny,ista:iend) )
-  ALLOCATE( C7(ny,ista:iend) )
-  ALLOCATE( C8(ny,ista:iend) )
-  ALLOCATE( C9(ny,ista:iend) )
-  ALLOCATE( C10(ny,ista:iend) )
-  ALLOCATE( theta2(ny,ista:iend) )
-  ALLOCATE( ps(ny,ista:iend) )
-  ALLOCATE( ph(ny,ista:iend) )
-  ALLOCATE( thetav(ny,ista:iend) )
-  ALLOCATE( kx(nx), ky(ny), kn2(ny,ista:iend) )
-  ALLOCATE( kk2(ny,ista:iend) )
-
 
   !
   ! Reads from the external file 'status.txt'
@@ -189,6 +168,7 @@ PROGRAM HD2D
     READ(1,'(a100)') ldir              ! 25
     READ(1,'(a100)') cdir              ! 26
     READ(1,'(a100)') sdir              ! 27
+    READ(1,*) pairs                  ! this is the number of different pairs of modes we want to consider
     READ(1,*) Ra                       ! 17
     READ(1,*) Pr
     READ(1,*) Wid
@@ -219,6 +199,7 @@ PROGRAM HD2D
     Wid = Wid*pi
   ENDIF
   CALL MPI_BCAST(  CFL,  1,GC_REAL,      0,MPI_COMM_WORLD,ierr)
+  CALL MPI_BCAST( pairs,  1,MPI_INTEGER,  0,MPI_COMM_WORLD,ierr)
   CALL MPI_BCAST( step,  1,MPI_INTEGER,  0,MPI_COMM_WORLD,ierr)
   CALL MPI_BCAST(tstep,  1,MPI_INTEGER,  0,MPI_COMM_WORLD,ierr)
   CALL MPI_BCAST(sstep,  1,MPI_INTEGER,  0,MPI_COMM_WORLD,ierr)
@@ -254,6 +235,44 @@ PROGRAM HD2D
   CALL MPI_BCAST(   nu,  1,GC_REAL,      0,MPI_COMM_WORLD,ierr)
   CALL MPI_BCAST(kappa,  1,GC_REAL,      0,MPI_COMM_WORLD,ierr)
   CALL MPI_BCAST(size,  1,MPI_INTEGER,  0,MPI_COMM_WORLD,ierr)
+
+
+  ! Gettting the pair of modes we want
+  ALLOCATE( psimodei(pairs), thetamodei(pairs),psimodej(pairs), thetamodej(pairs) )
+  IF (myrank.eq.0) THEN
+    OPEN(1,file='pairs.txt',status='unknown') ! Getting ps ICs
+    do i = 1, pairs, 1
+      read(1,*) psimodei(i)
+      read(1,*) thetamodei(i)
+      read(1,*) psimodej(i)
+      read(1,*) thetamodej(i)
+      read(1,*)
+    end do
+    CLOSE(1)
+  END IF
+
+
+  !
+  ! Allocates memory for distributed blocks
+
+  ALLOCATE( R1(nx,jsta:jend) )
+  ALLOCATE( R2(nx,jsta:jend) )
+  ALLOCATE( C1(ny,ista:iend) )
+  ALLOCATE( C2(ny,ista:iend) )
+  ALLOCATE( C3(ny,ista:iend) )
+  ALLOCATE( C4(ny,ista:iend) )
+  ALLOCATE( C5(ny,ista:iend) )
+  ALLOCATE( C6(ny,ista:iend) )
+  ALLOCATE( C7(ny,ista:iend) )
+  ALLOCATE( C8(ny,ista:iend) )
+  ALLOCATE( C9(ny,ista:iend) )
+  ALLOCATE( C10(ny,ista:iend) )
+  ALLOCATE( theta2(ny,ista:iend) )
+  ALLOCATE( ps(ny,ista:iend) )
+  ALLOCATE( ph(ny*pairs,ista:iend) )
+  ALLOCATE( thetav(ny*pairs,ista:iend) )
+  ALLOCATE( kx(nx), ky(ny), kn2(ny,ista:iend) )
+  ALLOCATE( kk2(ny,ista:iend) )
 
   !
   ! Some numerical constants
@@ -313,191 +332,6 @@ PROGRAM HD2D
   !
   IF (stat.eq.0) THEN
 
-    IF (InC.eq.1) THEN
-      DO i = ista,iend
-        DO j = 1,ny
-          IF (kn2(j,i).le.kmax) THEN
-            rannum = 2*pi*randu(seed)
-            ps(j,i) = real(nx,kind=GP)*real(ny,kind=GP)*exp(rannum*im)/kk2(j,i) ! absolulte value is 1 in all of the modes
-            rannum = 2*pi*randu(seed)
-            theta2(j,i) = real(nx,kind=GP)*real(ny,kind=GP)*exp(rannum*im)
-            rannum = 2*pi*randu(seed)
-            ph(j,i) = real(nx,kind=GP)*real(ny,kind=GP)*exp(rannum*im)/kk2(j,i) ! absolulte value is 1 in all of the modes
-            rannum = 2*pi*randu(seed)
-            thetav(j,i) = real(nx,kind=GP)*real(ny,kind=GP)*exp(rannum*im)
-          ELSE
-            ps(j,i) = 0.0d0
-            theta2(j,i) = 0.0d0
-            ph(j,i) = 0.0d0
-            thetav(j,i) = 0.0d0
-          ENDIF
-        END DO
-      END DO
-
-
-    ELSE IF (InC.eq.2) THEN
-      ALLOCATE( Rps(size), Ips(size), Rtheta2(size), Itheta2(size), Rph(size), Iph(size), Rthetav(size), Ithetav(size) )
-      IF (myrank.eq.0) THEN
-        OPEN(1,file='ps.txt',status='unknown') ! Getting ps ICs
-        do i = 1, size, 1
-          read(1,*) Rps(i)
-          read(1,*) Ips(i)
-        end do
-        CLOSE(1)
-        OPEN(1,file='theta2.txt',status='unknown') ! Getting theta2 ICs
-        do i = 1, size, 1
-          read(1,*) Rtheta2(i)
-          read(1,*) Itheta2(i)
-        end do
-        CLOSE(1)
-        OPEN(1,file='ph.txt',status='unknown') ! Getting theta2 ICs
-        do i = 1, size, 1
-          read(1,*) Rph(i)
-          read(1,*) Iph(i)
-        end do
-        CLOSE(1)
-        OPEN(1,file='thetav.txt',status='unknown') ! Getting theta2 ICs
-        do i = 1, size, 1
-          read(1,*) Rthetav(i)
-          read(1,*) Ithetav(i)
-        end do
-        CLOSE(1)
-      END IF
-      tmp=real(nx,kind=GP)*real(ny,kind=GP)
-      DO i = ista,iend ! Setting to 0 and then adding ICs
-        DO j = 1,ny
-          ps(j,i) = 0.0d0
-          theta2(j,i) = 0.0d0
-          ph(j,i) = 0.0d0
-          thetav(j,i) = 0.0d0
-          IF (i.lt.(nx/2+1).and.j.lt.(ny+1)) THEN ! Checking that mode is even and that we are within the bounds of psE and ThetaE
-            ps(j,i) = real(Rps((j-1)*(nx/2)+i),kind=GP)*tmp
-            theta2(j,i) = real(Rtheta2((j-1)*(nx/2)+i),kind=GP)*tmp
-            ph(j,i) = real(Rph((j-1)*(nx/2)+i),kind=GP)*tmp
-            thetav(j,i) = real(Rthetav((j-1)*(nx/2)+i),kind=GP)*tmp
-            IF (i.ne.1) THEN ! If we have an imaginary part also
-              ps(j,i) = ps(j,i) + im*real(Ips((j-1)*(nx/2)+i),kind=GP)*tmp
-              theta2(j,i) = theta2(j,i) + im*real(Itheta2((j-1)*(nx/2)+i),kind=GP)*tmp
-              ph(j,i) = ps(j,i) + im*real(Iph((j-1)*(nx/2)+i),kind=GP)*tmp
-              thetav(j,i) = theta2(j,i) + im*real(Ithetav((j-1)*(nx/2)+i),kind=GP)*tmp
-            END IF
-          END IF
-
-
-        END DO
-      END DO
-
-      DEALLOCATE( Rps, Ips, Rtheta2, Itheta2, Rph, Iph, Rthetav, Ithetav )
-
-    ELSE IF (InC.eq.3) THEN ! random for 3d fields, matlab for 2d
-      ALLOCATE( Rps(size), Ips(size), Rtheta2(size), Itheta2(size) )
-      IF (myrank.eq.0) THEN
-        OPEN(1,file='ps.txt',status='unknown') ! Getting ps ICs
-        do i = 1, size, 1
-          read(1,*) Rps(i)
-          read(1,*) Ips(i)
-        end do
-        CLOSE(1)
-        OPEN(1,file='theta2.txt',status='unknown') ! Getting theta2 ICs
-        do i = 1, size, 1
-          read(1,*) Rtheta2(i)
-          read(1,*) Itheta2(i)
-        end do
-        CLOSE(1)
-      END IF
-      tmp=real(nx,kind=GP)*real(ny,kind=GP)
-      DO i = ista,iend ! Setting to 0 and then adding ICs
-        DO j = 1,ny
-          ps(j,i) = 0.0d0
-          theta2(j,i) = 0.0d0
-          IF (i.lt.(nx/2+1).and.j.lt.(ny+1)) THEN ! Checking that mode is even and that we are within the bounds of psE and ThetaE
-            ps(j,i) = real(Rps((j-1)*(nx/2)+i),kind=GP)*tmp
-            theta2(j,i) = real(Rtheta2((j-1)*(nx/2)+i),kind=GP)*tmp
-            IF (i.ne.1) THEN ! If we have an imaginary part also
-              ps(j,i) = ps(j,i) + im*real(Ips((j-1)*(nx/2)+i),kind=GP)*tmp
-              theta2(j,i) = theta2(j,i) + im*real(Itheta2((j-1)*(nx/2)+i),kind=GP)*tmp
-            END IF
-          END IF
-
-
-        END DO
-      END DO
-      DEALLOCATE( Rps, Ips, Rtheta2, Itheta2 )
-      DO i = ista,iend
-        DO j = 1,ny
-          IF (kn2(j,i).le.kmax) THEN
-            rannum = 2*pi*randu(seed)
-            ph(j,i) = real(nx,kind=GP)*real(ny,kind=GP)*exp(rannum*im)/kk2(j,i) ! absolulte value is 1 in all of the modes
-            rannum = 2*pi*randu(seed)
-            thetav(j,i) = real(nx,kind=GP)*real(ny,kind=GP)*exp(rannum*im)
-          ELSE
-            ph(j,i) = 0.0d0
-            thetav(j,i) = 0.0d0
-          ENDIF
-        END DO
-      END DO
-
-    END IF ! end if for ics, there is another one for stat
-
-
-    IF (norm.eq.1) THEN ! Dont want to normalise when ICs is from MATLAB
-      ! theta
-        CALL energy(theta2,enerk,0)
-        CALL MPI_BCAST(enerk,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
-        tmp=theta20/sqrt(enerk)
-        DO i = ista,iend
-          DO j = 1,ny
-            IF (kn2(j,i).le.kmax) THEN ! Don't actually think we need this here since alising only comes into play when non-linear terms are used
-              theta2(j,i) = tmp*theta2(j,i)
-            ELSE
-              theta2(j,i) = 0.0d0 ! Gets rid of the wavenumbers that are too large
-            END IF
-          END DO
-        END DO
-      ! psi
-      CALL energy(ps,enerk,1)
-      CALL MPI_BCAST(enerk,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
-      tmp=u0/sqrt(enerk)
-      DO i = ista,iend
-        DO j = 1,ny
-          IF (kn2(j,i).le.kmax) THEN ! Don't actually think we need this here since alising only comes into play when non-linear terms are used
-            ps(j,i) = tmp*ps(j,i)
-          ELSE
-            ps(j,i) = 0.0d0 ! Gets rid of the wavenumbers that are too large
-          END IF
-        END DO
-      END DO
-
-    END IF
-
-    IF (normtwo.eq.1) THEN ! Dont want to normalise when ICs is from MATLAB
-      CALL energy(thetav,enerk,0)
-      CALL MPI_BCAST(enerk,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
-      tmp=thetav0/sqrt(enerk)
-      DO i = ista,iend
-        DO j = 1,ny
-          IF (kn2(j,i).le.kmax) THEN ! Don't actually think we need this here since alising only comes into play when non-linear terms are used
-            thetav(j,i) = tmp*thetav(j,i)
-          ELSE
-            thetav(j,i) = 0.0d0 ! Gets rid of the wavenumbers that are too large
-          END IF
-        END DO
-      END DO
-      ! ph
-      CALL energy(ph,enerk,1)
-      CALL MPI_BCAST(enerk,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
-      tmp=ph0/sqrt(enerk)
-      DO i = ista,iend
-        DO j = 1,ny
-          IF (kn2(j,i).le.kmax) THEN ! Don't actually think we need this here since alising only comes into play when non-linear terms are used
-            ph(j,i) = tmp*ph(j,i)
-          ELSE
-            ph(j,i) = 0.0d0 ! Gets rid of the wavenumbers that are too large
-          END IF
-        END DO
-      END DO
-
-    END IF
   ELSE  !! stat
 
     ix = 48+int(float(stat)/1000)
@@ -541,7 +375,7 @@ PROGRAM HD2D
     // x // c // d // u //'.dat',form='unformatted')
     READ(1) R1
     CLOSE(1)
-    CALL fftp2d_real_to_complex(planrc,R1,ph,MPI_COMM_WORLD)
+    CALL fftp2d_real_to_complex(planrc,R1,C5,MPI_COMM_WORLD)
 
     DO j = jsta,jend
       DO i = 1,nx
@@ -552,8 +386,18 @@ PROGRAM HD2D
     // x // c // d // u //'.dat',form='unformatted')
     READ(1) R1
     CLOSE(1)
-    CALL fftp2d_real_to_complex(planrc,R1,thetav,MPI_COMM_WORLD)
+    CALL fftp2d_real_to_complex(planrc,R1,C6,MPI_COMM_WORLD)
 
+
+    do k = 1,pairs ! Looping round pairs
+      ! Extracing the 2d field we want
+      DO i = ista,iend
+        DO j = 1,ny
+          ph(j+ny*(k-1),i) = C5(j,i)
+          thetav(j+ny*(k-1),i) = C6(j,i)
+        END DO
+      END DO
+    end do
 
 
   END IF  !! stat
@@ -586,7 +430,7 @@ PROGRAM HD2D
 
   !#################### MAIN LOOP ######################
   RK : DO t = ini,step
-  !
+    !
     ! Checks the necessary CFL condition for numerical stability
     CALL CFL_condition(ps,nu,kappa,CFL,ord,ordvf,Lx,Ly,dt)
     !
@@ -594,7 +438,24 @@ PROGRAM HD2D
     ! to check consistency and convergency. See the
     ! mhdcheck subroutine for details.
     IF (timec.eq.cstep) THEN
-      CALL hdcheck(ps,theta2,ph,thetav,time,ordvf,ordvh)
+      CALL hdcheck(ps,theta2,time)
+      do k=1,pairs
+        write (filename1, "(A7,I1)") "kenergy", k ! not that this only workds when k < 10. Will need to change I1 in loop if we want more than 9. Dont think we will, so wont bother
+        write (filename2, "(A7,I1)") "penergy", k
+        filename1 = trim(filename1)
+        filename2 = trim(filename2)
+        ! pick out the perp part that we want
+        DO i = ista,iend
+          DO j = 1,ny
+            C5(j,i) = ph(j+ny*(k-1),i)
+            C6(j,i) = thetav(j+ny*(k-1),i)
+          END DO
+        END DO
+        CALL hdcheckperp(C5,C6,time,filename1,filename2)
+
+      end do
+
+
       timec = 0
     ENDIF
 
@@ -624,7 +485,19 @@ PROGRAM HD2D
       !CALL spectrum2D(ps,theta,ext4)
       !CALL fieldsfs(ps,theta,ext4)
       CALL spectrum(ps,theta2,ext4,'spec2d')
-      CALL spectrum(ph,thetav,ext4,'spec3d')
+      do k=1,pairs
+        write (filename1, "(A6,I1)") 'spec3d', k ! not that this only workds when k < 10. Will need to change I1 in loop if we want more than 9. Dont think we will, so wont bother
+        ! pick out the perp part that we want
+        filename1 = trim(filename1)
+        DO i = ista,iend
+          DO j = 1,ny
+            C5(j,i) = ph(j+ny*(k-1),i)
+            C6(j,i) = thetav(j+ny*(k-1),i)
+          END DO
+        END DO
+        CALL spectrum(C5,C6,ext4,filename1)
+
+      end do
       IF (myrank.eq.0) THEN
         OPEN(1,file=trim(sdir) // '/spec_times.txt',position='append')
         WRITE(1,*) ext4,time
@@ -685,33 +558,36 @@ PROGRAM HD2D
       WRITE(1) R1
       CLOSE(1)
 
-
-      ! Printing ph
-      DO i = ista,iend
-        DO j = 1,ny
-          C1(j,i) = ph(j,i)*rmp
+      do k=1,pairs
+        write (filename1, "(A6,I1)") 'hd2Dph', k ! not that this only workds when k < 10. Will need to change I1 in loop if we want more than 9. Dont think we will, so wont bother
+        filename1 = trim(filename1)
+        ! Printing ph
+        DO i = ista,iend
+          DO j = 1,ny
+            C1(j,i) = ph(j+ny*(k-1),i)*rmp
+          END DO
         END DO
-      END DO
-      CALL fftp2d_complex_to_real(plancr,C1,R1,MPI_COMM_WORLD)
+        CALL fftp2d_complex_to_real(plancr,C1,R1,MPI_COMM_WORLD)
 
-      OPEN(1,file=trim(ldir) // '/hd2Dph.' // node // '.' &
-      // ext // '.dat',form='unformatted')
-      WRITE(1) R1
-      CLOSE(1)
-
-      ! Printing thetav
-      DO i = ista,iend
-        DO j = 1,ny
-          C1(j,i) = thetav(j,i)*rmp
+        OPEN(1,file=trim(ldir) // '/' // filename1 // '.' // node // '.' &
+        // ext // '.dat',form='unformatted')
+        WRITE(1) R1
+        CLOSE(1)
+        write (filename1, "(A6,I1)") 'hd2Dthetav', k ! not that this only workds when k < 10. Will need to change I1 in loop if we want more than 9. Dont think we will, so wont bother
+        filename1 = trim(filename1)
+        ! Printing thetav
+        DO i = ista,iend
+          DO j = 1,ny
+            C1(j,i) = thetav(j+ny*(k-1),i)*rmp
+          END DO
         END DO
-      END DO
-      CALL fftp2d_complex_to_real(plancr,C1,R1,MPI_COMM_WORLD)
+        CALL fftp2d_complex_to_real(plancr,C1,R1,MPI_COMM_WORLD)
 
-      OPEN(1,file=trim(ldir) // '/hd2Dthetav.' // node // '.' &
-      // ext // '.dat',form='unformatted')
-      WRITE(1) R1
-      CLOSE(1)
-
+        OPEN(1,file=trim(ldir) // '/' // filename1 //'.' //  node // '.' &
+        // ext // '.dat',form='unformatted')
+        WRITE(1) R1
+        CLOSE(1)
+      end do
       IF (myrank.eq.0) THEN
         OPEN(1,file=trim(ldir)//'/field_times.txt',position='append')
         WRITE(1,*) x//c//d//u,time
@@ -720,6 +596,8 @@ PROGRAM HD2D
 
     ENDIF
 
+
+    !!! Evolve 2D fields first!!!
     !
     ! Runge-Kutta step 1
     ! Copies the streamfunction and theta2 into the auxiliary matrix C1 and C2
@@ -728,8 +606,6 @@ PROGRAM HD2D
       DO j = 1,ny
         C1(j,i) = ps(j,i)
         C2(j,i) = theta2(j,i)
-        C5(j,i) = ph(j,i)
-        C6(j,i) = thetav(j,i)
       END DO
     END DO
 
@@ -738,12 +614,7 @@ PROGRAM HD2D
     DO o = ord,2,-1
       CALL poisson(C1,C2,C4)  ! make u grad theta2
       CALL laplak2(C1,C3)     ! make W
-      CALL poisson(C5,C3,C7)  ! {phi, nabla^2 psi}
       CALL poisson(C1,C3,C3)  ! u grad w. Poisson bracket
-      CALL laplak2(C5,C8)     ! nabla^2 Phi
-      CALL poisson(C1,C8,C8) ! {psi, nabla^2 phi}
-      CALL poisson(C1,C6,C9) ! {psi, thetav}
-      CALL poisson(C5,C2,C10) ! {phi, theta2}
 
       rmp = 1.0_GP/real(o,kind=GP)
       DO i = ista,iend
@@ -753,17 +624,9 @@ PROGRAM HD2D
             /(1.0d0 + (nu*kk2(j,i))*dt*rmp)
             C2(j,i) = (theta2(j,i) + dt*rmp*(-C4(j,i)+im*kx(i)*C1(j,i)/pi)) &
             /(1.0d0 + (kappa*kk2(j,i))*dt*rmp)
-
-            C5(j,i) = (ph(j,i) + dt*rmp*( C7(j,i)/kk2(j,i)+C8(j,i)/kk2(j,i)-im*kx(i)*C6(j,i)/kk2(j,i))) &
-            /(1.0d0 + (nu*(kk2(j,i)+(2.0d0*pi/Wid)**2))*dt*rmp)
-
-            C6(j,i) = (thetav(j,i) + dt*rmp*( -C9(j,i)-C10(j,i)+im*kx(i)*C5(j,i)/pi)) &
-            /(1.0d0 + (kappa*(kk2(j,i)+(2.0d0*pi/Wid)**2))*dt*rmp)
           ELSE
             C1(j,i) = 0.0d0
             C2(j,i) = 0.0d0
-            C5(j,i) = 0.0d0
-            C6(j,i) = 0.0d0
           ENDIF
         END DO
       END DO
@@ -776,12 +639,7 @@ PROGRAM HD2D
 
     CALL poisson(C1,C2,C4)  ! make u grad theta2
     CALL laplak2(C1,C3)     ! make W
-    CALL poisson(C5,C3,C7)  ! {phi, nabla^2 psi}
     CALL poisson(C1,C3,C3)  ! u grad w. Poisson bracket
-    CALL laplak2(C5,C8)     ! nabla^2 Phi
-    CALL poisson(C1,C8,C8) ! {psi, nabla^2 phi}
-    CALL poisson(C1,C6,C9) ! {psi, thetav}
-    CALL poisson(C5,C2,C10) ! {phi, theta2}
 
     rmp = 1.0_GP/real(o,kind=GP)
     DO i = ista,iend
@@ -792,21 +650,96 @@ PROGRAM HD2D
 
           theta2(j,i) = (theta2(j,i)+ dt*rmp*(-C4(j,i)+im*kx(i)*C1(j,i)/pi)) &
           /(1.0d0 + (kappa*kk2(j,i))*dt*rmp)
-
-          ph(j,i) = (ph(j,i) + dt*rmp*( C7(j,i)/kk2(j,i)+C8(j,i)/kk2(j,i)-im*kx(i)*C6(j,i)/kk2(j,i))) &
-          /(1.0d0 + (nu*(kk2(j,i)+(2.0d0*pi/Wid)**2))*dt*rmp)
-
-          thetav(j,i) = (thetav(j,i) + dt*rmp*( -C9(j,i)-C10(j,i)+im*kx(i)*C5(j,i)/pi)) &
-          /(1.0d0 + (kappa*(kk2(j,i)+(2.0d0*pi/Wid)**2))*dt*rmp)
         ELSE
           ps(j,i) = 0.0d0
           theta2(j,i) = 0.0d0
-          ph(j,i) = 0.0d0
-          thetav(j,i) = 0.0d0
         ENDIF
 
       END DO
     END DO
+
+
+    !!! Now evolve perp fields   !!!
+    do k = 1,pairs ! Looping round pairs
+      ! Extracing the 2d field we want
+      DO i = ista,iend
+        DO j = 1,ny
+          IF (psimodei(k).eq.i.and.psimodej(k).eq.j) THEN
+            C1(j,i) = ps(j,i)
+          ELSE
+            C1(j,i) = 0.0d0
+          end if
+          IF (thetamodei(k).eq.i.and.thetamodej(k).eq.j) THEN
+            C2(j,i) = theta2(j,i)
+          ELSE
+            C2(j,i) = 0.0d0
+          end if
+        END DO
+      END DO
+
+      ! pick out the perp part that we want
+      DO i = ista,iend
+        DO j = 1,ny
+          C5(j,i) = ph(j+ny*(k-1),i)
+          C6(j,i) = thetav(j+ny*(k-1),i)
+        END DO
+      END DO
+
+      ! Runge-Kutta step 2
+
+      DO o = ord,2,-1
+        CALL laplak2(C1,C3)     ! make W
+        CALL poisson(C5,C3,C7)  ! {phi, nabla^2 psi}
+        CALL laplak2(C5,C8)     ! nabla^2 Phi
+        CALL poisson(C1,C8,C8) ! {psi, nabla^2 phi}
+        CALL poisson(C1,C6,C9) ! {psi, thetav}
+        CALL poisson(C5,C2,C10) ! {phi, theta2}
+
+        rmp = 1.0_GP/real(o,kind=GP)
+        DO i = ista,iend
+          DO j = 1,ny
+            IF (kn2(j,i).le.kmax) THEN
+              C5(j,i) = (ph(j+ny*(k-1),i) + dt*rmp*( C7(j,i)/kk2(j,i)+C8(j,i)/kk2(j,i)-im*kx(i)*C6(j,i)/kk2(j,i))) &
+              /(1.0d0 + (nu*(kk2(j,i)+(2.0d0*pi/Wid)**2))*dt*rmp)
+
+              C6(j,i) = (thetav(j+ny*(k-1),i) + dt*rmp*( -C9(j,i)-C10(j,i)+im*kx(i)*C5(j,i)/pi)) &
+              /(1.0d0 + (kappa*(kk2(j,i)+(2.0d0*pi/Wid)**2))*dt*rmp)
+            ELSE
+              C5(j,i) = 0.0d0
+              C6(j,i) = 0.0d0
+            ENDIF
+          END DO
+        END DO
+      END DO
+
+      !
+      ! Runge-Kutta step 3
+
+      o = 1
+      CALL laplak2(C1,C3)     ! make W
+      CALL poisson(C5,C3,C7)  ! {phi, nabla^2 psi}
+      CALL laplak2(C5,C8)     ! nabla^2 Phi
+      CALL poisson(C1,C8,C8) ! {psi, nabla^2 phi}
+      CALL poisson(C1,C6,C9) ! {psi, thetav}
+      CALL poisson(C5,C2,C10) ! {phi, theta2}
+
+      rmp = 1.0_GP/real(o,kind=GP)
+      DO i = ista,iend
+        DO j = 1,ny
+          IF (kn2(j,i).le.kmax) THEN
+            ph(j+ny*(k-1),i) = (ph(j+ny*(k-1),i) + dt*rmp*( C7(j,i)/kk2(j,i)+C8(j,i)/kk2(j,i)-im*kx(i)*C6(j,i)/kk2(j,i))) &
+            /(1.0d0 + (nu*(kk2(j,i)+(2.0d0*pi/Wid)**2))*dt*rmp)
+
+            thetav(j+ny*(k-1),i) = (thetav(j+ny*(k-1),i) + dt*rmp*( -C9(j,i)-C10(j,i)+im*kx(i)*C5(j,i)/pi)) &
+            /(1.0d0 + (kappa*(kk2(j,i)+(2.0d0*pi/Wid)**2))*dt*rmp)
+          ELSE
+            ph(j+ny*(k-1),i) = 0.0d0
+            thetav(j+ny*(k-1),i) = 0.0d0
+          ENDIF
+
+        END DO
+      END DO
+    end do
 
     timet = timet+1
     times = times+1
