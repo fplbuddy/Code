@@ -64,6 +64,7 @@
       REAL(KIND=GP), ALLOCATABLE, DIMENSION (:)           :: kx,ky
       REAL(KIND=GP), ALLOCATABLE, DIMENSION (:)           :: Rps, Ips, Rtheta2, Itheta2, Rph, Iph, Rthetav, Ithetav
       INTEGER, ALLOCATABLE, DIMENSION (:)           :: psimodei, thetamodei, psimodej, thetamodej
+      INTEGER, ALLOCATABLE, DIMENSION (:)           :: cont
       REAL(KIND=GP), TARGET, ALLOCATABLE, DIMENSION (:,:) :: kn2
       REAL(KIND=GP), POINTER, DIMENSION (:,:)             :: kk2
       INTEGER :: nmax, specmax, kxmax, kymax!,nmaxperp

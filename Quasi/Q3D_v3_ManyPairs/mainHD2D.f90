@@ -52,6 +52,7 @@ PROGRAM HD2D
   INTEGER :: sstep
   INTEGER :: size
   INTEGER :: pairs
+  INTEGER :: check
   !
   ! streamfunction, vector potential, z component
   ! of the fields and external force matrixes
@@ -325,6 +326,12 @@ PROGRAM HD2D
     END DO
   END DO
 
+  ! set up the cont array
+  ALLOCATE( cont(pairs) )
+  do k = 1,pairs
+    cont(k) = 1
+  end do
+
 
 
   !
@@ -440,19 +447,22 @@ PROGRAM HD2D
     IF (timec.eq.cstep) THEN
       CALL hdcheck(ps,theta2,time)
       do k=1,pairs
-        write (filename1, "(A7,I1)") "kenergy", k ! not that this only workds when k < 10. Will need to change I1 in loop if we want more than 9. Dont think we will, so wont bother
-        write (filename2, "(A7,I1)") "penergy", k
-        filename1 = trim(filename1)
-        filename2 = trim(filename2)
-        ! pick out the perp part that we want
-        DO i = ista,iend
-          DO j = 1,ny
-            C5(j,i) = ph(j+ny*(k-1),i)
-            C6(j,i) = thetav(j+ny*(k-1),i)
+        if (cont(k).eq.1) THEN
+          write (filename1, "(A7,I1)") "kenergy", k ! not that this only workds when k < 10. Will need to change I1 in loop if we want more than 9. Dont think we will, so wont bother
+          write (filename2, "(A7,I1)") "penergy", k
+          filename1 = trim(filename1)
+          filename2 = trim(filename2)
+          ! pick out the perp part that we want
+          DO i = ista,iend
+            DO j = 1,ny
+              C5(j,i) = ph(j+ny*(k-1),i)
+              C6(j,i) = thetav(j+ny*(k-1),i)
+            END DO
           END DO
-        END DO
-        CALL hdcheckperp(C5,C6,time,filename1,filename2)
+          CALL hdcheckperp(C5,C6,time,filename1,filename2,check)
 
+          cont(k) = check ! updating if we want to continue
+        end if
       end do
 
 
@@ -486,17 +496,18 @@ PROGRAM HD2D
       !CALL fieldsfs(ps,theta,ext4)
       CALL spectrum(ps,theta2,ext4,'spec2d')
       do k=1,pairs
-        write (filename1, "(A6,I1)") 'spec3d', k ! not that this only workds when k < 10. Will need to change I1 in loop if we want more than 9. Dont think we will, so wont bother
-        ! pick out the perp part that we want
-        filename1 = trim(filename1)
-        DO i = ista,iend
-          DO j = 1,ny
-            C5(j,i) = ph(j+ny*(k-1),i)
-            C6(j,i) = thetav(j+ny*(k-1),i)
+        if (cont(k).eq.1) THEN
+          write (filename1, "(A6,I1)") 'spec3d', k ! not that this only workds when k < 10. Will need to change I1 in loop if we want more than 9. Dont think we will, so wont bother
+          ! pick out the perp part that we want
+          filename1 = trim(filename1)
+          DO i = ista,iend
+            DO j = 1,ny
+              C5(j,i) = ph(j+ny*(k-1),i)
+              C6(j,i) = thetav(j+ny*(k-1),i)
+            END DO
           END DO
-        END DO
-        CALL spectrum(C5,C6,ext4,filename1)
-
+          CALL spectrum(C5,C6,ext4,filename1)
+        end if
       end do
       IF (myrank.eq.0) THEN
         OPEN(1,file=trim(sdir) // '/spec_times.txt',position='append')
@@ -559,34 +570,36 @@ PROGRAM HD2D
       CLOSE(1)
 
       do k=1,pairs
-        write (filename1, "(A6,I1)") 'hd2Dph', k ! not that this only workds when k < 10. Will need to change I1 in loop if we want more than 9. Dont think we will, so wont bother
-        filename1 = trim(filename1)
-        ! Printing ph
-        DO i = ista,iend
-          DO j = 1,ny
-            C1(j,i) = ph(j+ny*(k-1),i)*rmp
+        if (cont(k).eq.1) THEN
+          write (filename1, "(A6,I1)") 'hd2Dph', k ! not that this only workds when k < 10. Will need to change I1 in loop if we want more than 9. Dont think we will, so wont bother
+          filename1 = trim(filename1)
+          ! Printing ph
+          DO i = ista,iend
+            DO j = 1,ny
+              C1(j,i) = ph(j+ny*(k-1),i)*rmp
+            END DO
           END DO
-        END DO
-        CALL fftp2d_complex_to_real(plancr,C1,R1,MPI_COMM_WORLD)
+          CALL fftp2d_complex_to_real(plancr,C1,R1,MPI_COMM_WORLD)
 
-        OPEN(1,file=trim(ldir) // '/' // filename1 // '.' // node // '.' &
-        // ext // '.dat',form='unformatted')
-        WRITE(1) R1
-        CLOSE(1)
-        write (filename1, "(A6,I1)") 'hd2Dthetav', k ! not that this only workds when k < 10. Will need to change I1 in loop if we want more than 9. Dont think we will, so wont bother
-        filename1 = trim(filename1)
-        ! Printing thetav
-        DO i = ista,iend
-          DO j = 1,ny
-            C1(j,i) = thetav(j+ny*(k-1),i)*rmp
+          OPEN(1,file=trim(ldir) // '/' // filename1 // '.' // node // '.' &
+          // ext // '.dat',form='unformatted')
+          WRITE(1) R1
+          CLOSE(1)
+          write (filename1, "(A6,I1)") 'hd2Dthetav', k ! not that this only workds when k < 10. Will need to change I1 in loop if we want more than 9. Dont think we will, so wont bother
+          filename1 = trim(filename1)
+          ! Printing thetav
+          DO i = ista,iend
+            DO j = 1,ny
+              C1(j,i) = thetav(j+ny*(k-1),i)*rmp
+            END DO
           END DO
-        END DO
-        CALL fftp2d_complex_to_real(plancr,C1,R1,MPI_COMM_WORLD)
+          CALL fftp2d_complex_to_real(plancr,C1,R1,MPI_COMM_WORLD)
 
-        OPEN(1,file=trim(ldir) // '/' // filename1 //'.' //  node // '.' &
-        // ext // '.dat',form='unformatted')
-        WRITE(1) R1
-        CLOSE(1)
+          OPEN(1,file=trim(ldir) // '/' // filename1 //'.' //  node // '.' &
+          // ext // '.dat',form='unformatted')
+          WRITE(1) R1
+          CLOSE(1)
+        end if
       end do
       IF (myrank.eq.0) THEN
         OPEN(1,file=trim(ldir)//'/field_times.txt',position='append')
@@ -661,33 +674,62 @@ PROGRAM HD2D
 
     !!! Now evolve perp fields   !!!
     do k = 1,pairs ! Looping round pairs
-      ! Extracing the 2d field we want
-      DO i = ista,iend
-        DO j = 1,ny
-          IF (psimodei(k).eq.i.and.psimodej(k).eq.j) THEN
-            C1(j,i) = ps(j,i)
-          ELSE
-            C1(j,i) = 0.0d0
-          end if
-          IF (thetamodei(k).eq.i.and.thetamodej(k).eq.j) THEN
-            C2(j,i) = theta2(j,i)
-          ELSE
-            C2(j,i) = 0.0d0
-          end if
+      if (cont(k).eq.1) THEN
+        ! Extracing the 2d field we want
+        DO i = ista,iend
+          DO j = 1,ny
+            IF (psimodei(k).eq.i.and.psimodej(k).eq.j) THEN
+              C1(j,i) = ps(j,i)
+            ELSE
+              C1(j,i) = 0.0d0
+            end if
+            IF (thetamodei(k).eq.i.and.thetamodej(k).eq.j) THEN
+              C2(j,i) = theta2(j,i)
+            ELSE
+              C2(j,i) = 0.0d0
+            end if
+          END DO
         END DO
-      END DO
 
-      ! pick out the perp part that we want
-      DO i = ista,iend
-        DO j = 1,ny
-          C5(j,i) = ph(j+ny*(k-1),i)
-          C6(j,i) = thetav(j+ny*(k-1),i)
+        ! pick out the perp part that we want
+        DO i = ista,iend
+          DO j = 1,ny
+            C5(j,i) = ph(j+ny*(k-1),i)
+            C6(j,i) = thetav(j+ny*(k-1),i)
+          END DO
         END DO
-      END DO
 
-      ! Runge-Kutta step 2
+        ! Runge-Kutta step 2
 
-      DO o = ord,2,-1
+        DO o = ord,2,-1
+          CALL laplak2(C1,C3)     ! make W
+          CALL poisson(C5,C3,C7)  ! {phi, nabla^2 psi}
+          CALL laplak2(C5,C8)     ! nabla^2 Phi
+          CALL poisson(C1,C8,C8) ! {psi, nabla^2 phi}
+          CALL poisson(C1,C6,C9) ! {psi, thetav}
+          CALL poisson(C5,C2,C10) ! {phi, theta2}
+
+          rmp = 1.0_GP/real(o,kind=GP)
+          DO i = ista,iend
+            DO j = 1,ny
+              IF (kn2(j,i).le.kmax) THEN
+                C5(j,i) = (ph(j+ny*(k-1),i) + dt*rmp*( C7(j,i)/kk2(j,i)+C8(j,i)/kk2(j,i)-im*kx(i)*C6(j,i)/kk2(j,i))) &
+                /(1.0d0 + (nu*(kk2(j,i)+(2.0d0*pi/Wid)**2))*dt*rmp)
+
+                C6(j,i) = (thetav(j+ny*(k-1),i) + dt*rmp*( -C9(j,i)-C10(j,i)+im*kx(i)*C5(j,i)/pi)) &
+                /(1.0d0 + (kappa*(kk2(j,i)+(2.0d0*pi/Wid)**2))*dt*rmp)
+              ELSE
+                C5(j,i) = 0.0d0
+                C6(j,i) = 0.0d0
+              ENDIF
+            END DO
+          END DO
+        END DO
+
+        !
+        ! Runge-Kutta step 3
+
+        o = 1
         CALL laplak2(C1,C3)     ! make W
         CALL poisson(C5,C3,C7)  ! {phi, nabla^2 psi}
         CALL laplak2(C5,C8)     ! nabla^2 Phi
@@ -699,46 +741,19 @@ PROGRAM HD2D
         DO i = ista,iend
           DO j = 1,ny
             IF (kn2(j,i).le.kmax) THEN
-              C5(j,i) = (ph(j+ny*(k-1),i) + dt*rmp*( C7(j,i)/kk2(j,i)+C8(j,i)/kk2(j,i)-im*kx(i)*C6(j,i)/kk2(j,i))) &
+              ph(j+ny*(k-1),i) = (ph(j+ny*(k-1),i) + dt*rmp*( C7(j,i)/kk2(j,i)+C8(j,i)/kk2(j,i)-im*kx(i)*C6(j,i)/kk2(j,i))) &
               /(1.0d0 + (nu*(kk2(j,i)+(2.0d0*pi/Wid)**2))*dt*rmp)
 
-              C6(j,i) = (thetav(j+ny*(k-1),i) + dt*rmp*( -C9(j,i)-C10(j,i)+im*kx(i)*C5(j,i)/pi)) &
+              thetav(j+ny*(k-1),i) = (thetav(j+ny*(k-1),i) + dt*rmp*( -C9(j,i)-C10(j,i)+im*kx(i)*C5(j,i)/pi)) &
               /(1.0d0 + (kappa*(kk2(j,i)+(2.0d0*pi/Wid)**2))*dt*rmp)
             ELSE
-              C5(j,i) = 0.0d0
-              C6(j,i) = 0.0d0
+              ph(j+ny*(k-1),i) = 0.0d0
+              thetav(j+ny*(k-1),i) = 0.0d0
             ENDIF
+
           END DO
         END DO
-      END DO
-
-      !
-      ! Runge-Kutta step 3
-
-      o = 1
-      CALL laplak2(C1,C3)     ! make W
-      CALL poisson(C5,C3,C7)  ! {phi, nabla^2 psi}
-      CALL laplak2(C5,C8)     ! nabla^2 Phi
-      CALL poisson(C1,C8,C8) ! {psi, nabla^2 phi}
-      CALL poisson(C1,C6,C9) ! {psi, thetav}
-      CALL poisson(C5,C2,C10) ! {phi, theta2}
-
-      rmp = 1.0_GP/real(o,kind=GP)
-      DO i = ista,iend
-        DO j = 1,ny
-          IF (kn2(j,i).le.kmax) THEN
-            ph(j+ny*(k-1),i) = (ph(j+ny*(k-1),i) + dt*rmp*( C7(j,i)/kk2(j,i)+C8(j,i)/kk2(j,i)-im*kx(i)*C6(j,i)/kk2(j,i))) &
-            /(1.0d0 + (nu*(kk2(j,i)+(2.0d0*pi/Wid)**2))*dt*rmp)
-
-            thetav(j+ny*(k-1),i) = (thetav(j+ny*(k-1),i) + dt*rmp*( -C9(j,i)-C10(j,i)+im*kx(i)*C5(j,i)/pi)) &
-            /(1.0d0 + (kappa*(kk2(j,i)+(2.0d0*pi/Wid)**2))*dt*rmp)
-          ELSE
-            ph(j+ny*(k-1),i) = 0.0d0
-            thetav(j+ny*(k-1),i) = 0.0d0
-          ENDIF
-
-        END DO
-      END DO
+      end if
     end do
 
     timet = timet+1
@@ -758,6 +773,8 @@ PROGRAM HD2D
   DEALLOCATE( R1,R2 )
   DEALLOCATE( ps,theta2 )
   DEALLOCATE( C1,C3,C2,C4,C5,C6,C7,C8,C9,C10 )
+  DEALLOCATE( cont )
+  DEALLOCATE( psimodei, thetamodei, psimodej, thetamodej )
   DEALLOCATE( kx,ky )
   DEALLOCATE( kk2 )
 

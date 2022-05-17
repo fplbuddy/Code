@@ -544,7 +544,7 @@ SUBROUTINE hdcheck(a,b,t)
 END SUBROUTINE hdcheck
 
 !*****************************************************************
-SUBROUTINE hdcheckperp(d,e,t,filename1,filename2)
+SUBROUTINE hdcheckperp(d,e,t,filename1,filename2,check)
   !-----------------------------------------------------------------
   !
   !
@@ -565,6 +565,7 @@ SUBROUTINE hdcheckperp(d,e,t,filename1,filename2)
   REAL(KIND=GP) :: t
   REAL(KIND=GP) :: nrm,nrm2,tmp1,tmp2
   INTEGER :: i,j
+  INTEGER, INTENT(OUT) :: check
   CHARACTER(len=8) :: filename1,filename2
 
 
@@ -573,6 +574,13 @@ SUBROUTINE hdcheckperp(d,e,t,filename1,filename2)
   !
 
   CALL energy(d,enk2,1)
+
+  ! checkinf if we need to stop
+  if (enk2.gt.huge(0.0d0)) THEN
+    check = 0
+  ELSE
+    check = 1
+  end if
 
   !
   ! Computes the mean potential energy
