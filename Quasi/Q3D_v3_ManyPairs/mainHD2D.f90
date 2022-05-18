@@ -460,7 +460,7 @@ PROGRAM HD2D
             END DO
           END DO
           CALL hdcheckperp(C5,C6,time,filename1,filename2,check)
-
+          CALL MPI_BCAST(check,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
           cont(k) = check ! updating if we want to continue
         end if
       end do
@@ -750,7 +750,6 @@ PROGRAM HD2D
               ph(j+ny*(k-1),i) = 0.0d0
               thetav(j+ny*(k-1),i) = 0.0d0
             ENDIF
-
           END DO
         END DO
       end if
