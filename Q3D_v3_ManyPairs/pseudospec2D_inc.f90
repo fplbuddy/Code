@@ -544,7 +544,7 @@ SUBROUTINE hdcheck(a,b,t)
 END SUBROUTINE hdcheck
 
 !*****************************************************************
-SUBROUTINE hdcheckperp(d,e,t,filename1,filename2,check)
+SUBROUTINE hdcheckperp(a,b,d,e,t,filename1,filename2,k,check)
   !-----------------------------------------------------------------
   !
   !
@@ -558,13 +558,14 @@ SUBROUTINE hdcheckperp(d,e,t,filename1,filename2,check)
 
   IMPLICIT NONE
 
-  COMPLEX(KIND=GP), INTENT(IN), DIMENSION(ny,ista:iend) :: d,e
+  COMPLEX(KIND=GP), INTENT(IN), DIMENSION(ny,ista:iend) :: a,b,d,e
   COMPLEX(KIND=GP), DIMENSION(ny,ista:iend) :: c1
+  COMPLEX(KIND=GP) :: psimode, thetamode
   DOUBLE PRECISION  :: enk2
   DOUBLE PRECISION  :: enp2
   REAL(KIND=GP) :: t
-  REAL(KIND=GP) :: nrm,nrm2,tmp1,tmp2
-  INTEGER :: i,j
+  REAL(KIND=GP) :: nrm
+  INTEGER :: i,j,k
   INTEGER, INTENT(OUT) :: check
   CHARACTER(len=8) :: filename1,filename2
 
@@ -589,14 +590,18 @@ SUBROUTINE hdcheckperp(d,e,t,filename1,filename2,check)
   CALL energy(e,enp2,0)
   !
   ! Creates external files to store the results
-  !
+  nrm = 1.0_GP/(real(nx,kind=GP)*real(ny,kind=GP))
+
   IF (myrank.eq.0) THEN
+    psimode = a(psimodej(k),psimodei(k)) ! Not here that we can not have index larger than N/8 here due to how modes are partitioned
+    ! between procs
+    thetamode = b(thetamodej(k),thetamodei(k))
     OPEN(1,file=trim(cdir)//'/'//filename1//'.txt',position='append')
-    WRITE(1,20) t,enk2
-    20    FORMAT( E23.14E3,E23.14E3 )
+    WRITE(1,20) t,enk2,REAL(psimode)*nrm,AIMAG(psimode)*nrm
+    20    FORMAT( E23.14E3,E23.14E3,E23.14E3,E23.14E3 )
     CLOSE(1)
     OPEN(1,file=trim(cdir)//'/'//filename2//'.txt',position='append')
-    WRITE(1,20) t,enp2
+    WRITE(1,20) t,enp2,REAL(thetamode)*nrm,AIMAG(thetamode)*nrm
     CLOSE(1)
   ENDIF
 

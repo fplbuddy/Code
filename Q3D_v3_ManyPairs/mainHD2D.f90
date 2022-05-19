@@ -244,8 +244,8 @@ PROGRAM HD2D
     OPEN(1,file='pairs.txt',status='unknown') ! Getting ps ICs
     do i = 1, pairs, 1
       read(1,*) psimodei(i)
-      read(1,*) thetamodei(i)
       read(1,*) psimodej(i)
+      read(1,*) thetamodei(i)
       read(1,*) thetamodej(i)
       read(1,*)
     end do
@@ -325,9 +325,8 @@ PROGRAM HD2D
       kk2(j,i) = kx(i)**2+ky(j)**2
     END DO
   END DO
-
-  ! set up the cont array
   ALLOCATE( cont(pairs) )
+  ! set up the cont array
   do k = 1,pairs
     cont(k) = 1
   end do
@@ -459,7 +458,7 @@ PROGRAM HD2D
               C6(j,i) = thetav(j+ny*(k-1),i)
             END DO
           END DO
-          CALL hdcheckperp(C5,C6,time,filename1,filename2,check)
+          CALL hdcheckperp(ps,theta2,C5,C6,time,filename1,filename2,k,check)
           CALL MPI_BCAST(check,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
           cont(k) = check ! updating if we want to continue
         end if
@@ -750,10 +749,11 @@ PROGRAM HD2D
               ph(j+ny*(k-1),i) = 0.0d0
               thetav(j+ny*(k-1),i) = 0.0d0
             ENDIF
+
           END DO
         END DO
-      end if
-    end do
+end if
+end do
 
     timet = timet+1
     times = times+1
