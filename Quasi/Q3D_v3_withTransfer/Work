@@ -1,0 +1,10 @@
+27 Oct 2021
+Started with RBC 2.16 as base
+Changed theta to theta2 x
+Add other fields x
+Add random ICs x
+InC = 2 one from array - think size and locations need to change x
+InC 3 = random for 3d, matlab for 2d x
+Normalising x
+CFL condition - leave unchanged for now
+Add equations x
