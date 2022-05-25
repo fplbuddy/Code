@@ -514,9 +514,9 @@ SUBROUTINE hdcheck(a,b,d,e,t,ordvf,ordvh,Wid)
   COMPLEX(KIND=GP), DIMENSION(ny,ista:iend) :: c1,c2
   DOUBLE PRECISION  :: enk,denk,fenk
   DOUBLE PRECISION  :: enp,denp
-  DOUBLE PRECISION  :: enk2,Mfen
+  DOUBLE PRECISION  :: enk2
   DOUBLE PRECISION  :: enp2
-  DOUBLE PRECISION  :: MNL1, MNL2, MDis, ENL1, ENL2, EDis
+  DOUBLE PRECISION  :: MNL1, MNL2, MDis, ENL1, ENL2, EDis,Mfen
   DOUBLE PRECISION :: enzm,enfl
   REAL(KIND=GP) :: t
   REAL(KIND=GP) :: nrm,nrm2,tmp1,tmp2

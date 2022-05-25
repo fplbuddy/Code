@@ -544,7 +544,7 @@ SUBROUTINE hdcheck(a,b,t)
 END SUBROUTINE hdcheck
 
 !*****************************************************************
-SUBROUTINE hdcheckperp(a,b,d,e,t,filename1,filename2,k,check)
+SUBROUTINE hdcheckperp(a,b,d,e,t,filename1,filename2,k,check,Wid)
   !-----------------------------------------------------------------
   !
   !
@@ -555,6 +555,7 @@ SUBROUTINE hdcheckperp(a,b,d,e,t,filename1,filename2,k,check)
   USE mpivars
   USE io
   USE fft
+  USE var
 
   IMPLICIT NONE
 
@@ -563,6 +564,8 @@ SUBROUTINE hdcheckperp(a,b,d,e,t,filename1,filename2,k,check)
   COMPLEX(KIND=GP) :: psimode, thetamode
   DOUBLE PRECISION  :: enk2
   DOUBLE PRECISION  :: enp2
+  DOUBLE PRECISION  :: Wid
+  DOUBLE PRECISION  :: MNL1, MNL2, MDis, ENL1, ENL2, EDis,Mfen
   REAL(KIND=GP) :: t
   REAL(KIND=GP) :: nrm
   INTEGER :: i,j,k
@@ -583,11 +586,45 @@ SUBROUTINE hdcheckperp(a,b,d,e,t,filename1,filename2,k,check)
     check = 1
   end if
 
+  ! Now do kinetic energy balance
+  !! Mfen
+  CALL derivk2(e,c1,1)
+  CALL inerprod(d,c1,0,Mfen)
+  !! MNL1
+  CALL laplak2(a,c1)
+  CALL poisson(d,c1,c1)
+  CALL inerprod(d,c1,0,MNL1)
+  !! MNL2
+  CALL laplak2(d,c1)
+  CALL poisson(a,c1,c1)
+  CALL inerprod(d,c1,0,MNL2)
+  !! MDis
+  DO i = ista,iend
+    DO j = 1,ny
+      c1(j,i) = (kk2(j,i)+(2.0d0*pi/Wid)**2)*kk2(j,i)*d(j,i)
+    END DO
+  END DO
+  CALL inerprod(d,C1,0,MDis)
+
   !
   ! Computes the mean potential energy
   !
-
   CALL energy(e,enp2,0)
+
+  ! Do potential energy balance
+  CALL poisson(a,e,c1)
+  CALL inerprod(e,c1,0,ENL1)
+  !!!
+  CALL poisson(d,b,c1)
+  CALL inerprod(e,C1,0,ENL2)
+  !!!
+  DO i = ista,iend
+    DO j = 1,ny
+      c1(j,i) = -(kk2(j,i)+(2.0d0*pi/Wid)**2)*e(j,i)
+    END DO
+  END DO
+  CALL inerprod(e,c1,0,EDis)
+
   !
   ! Creates external files to store the results
   nrm = 1.0_GP/(real(nx,kind=GP)*real(ny,kind=GP))
@@ -597,11 +634,11 @@ SUBROUTINE hdcheckperp(a,b,d,e,t,filename1,filename2,k,check)
     ! between procs
     thetamode = b(thetamodej(k),thetamodei(k))
     OPEN(1,file=trim(cdir)//'/'//filename1//'.txt',position='append')
-    WRITE(1,20) t,enk2,REAL(psimode)*nrm,AIMAG(psimode)*nrm
-    20    FORMAT( E23.14E3,E23.14E3,E23.14E3,E23.14E3 )
+    WRITE(1,20) t,enk2,REAL(psimode)*nrm,AIMAG(psimode)*nrm,Mfen,MNL1,MNL2,MDis
+    20    FORMAT( E23.14E3,E23.14E3,E23.14E3,E23.14E3,E23.14E3,E23.14E3,E23.14E3,E23.14E3 )
     CLOSE(1)
     OPEN(1,file=trim(cdir)//'/'//filename2//'.txt',position='append')
-    WRITE(1,20) t,enp2,REAL(thetamode)*nrm,AIMAG(thetamode)*nrm
+    WRITE(1,20) t,enp2,REAL(thetamode)*nrm,AIMAG(thetamode)*nrm,ENL1,ENL2,EDis
     CLOSE(1)
   ENDIF
 

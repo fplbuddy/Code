@@ -458,7 +458,7 @@ PROGRAM HD2D
               C6(j,i) = thetav(j+ny*(k-1),i)
             END DO
           END DO
-          CALL hdcheckperp(ps,theta2,C5,C6,time,filename1,filename2,k,check)
+          CALL hdcheckperp(ps,theta2,C5,C6,time,filename1,filename2,k,check,Wid)
           CALL MPI_BCAST(check,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
           cont(k) = check ! updating if we want to continue
         end if
