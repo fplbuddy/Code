@@ -488,7 +488,7 @@ SUBROUTINE inerprod(a,b,kin,rslt)
 END SUBROUTINE inerprod
 
 !*****************************************************************
-SUBROUTINE hdcheck(a,b,d,e,t,ordvf,ordvh)
+SUBROUTINE hdcheck(a,b,d,e,t,ordvf,ordvh,Wid)
   !-----------------------------------------------------------------
   !
   ! Consistency check for the conservation of energy in HD 2D
@@ -505,20 +505,24 @@ SUBROUTINE hdcheck(a,b,d,e,t,ordvf,ordvh)
   USE mpivars
   USE io
   USE fft
+  USE var
+  USE ali
 
   IMPLICIT NONE
 
   COMPLEX(KIND=GP), INTENT(IN), DIMENSION(ny,ista:iend) :: a,b,d,e
-  COMPLEX(KIND=GP), DIMENSION(ny,ista:iend) :: c1
+  COMPLEX(KIND=GP), DIMENSION(ny,ista:iend) :: c1,c2
   DOUBLE PRECISION  :: enk,denk,fenk
   DOUBLE PRECISION  :: enp,denp
-  DOUBLE PRECISION  :: enk2,denk2,fenk2
-  DOUBLE PRECISION  :: enp2,denp2
+  DOUBLE PRECISION  :: enk2,Mfen
+  DOUBLE PRECISION  :: enp2
+  DOUBLE PRECISION  :: MNL1, MNL2, MDis, ENL1, ENL2, EDis
   DOUBLE PRECISION :: enzm,enfl
   REAL(KIND=GP) :: t
   REAL(KIND=GP) :: nrm,nrm2,tmp1,tmp2
   INTEGER :: ordvf,ordvh
   INTEGER :: i,j
+  DOUBLE PRECISION :: Wid
 
   !
   ! Computes the mean energy
@@ -529,9 +533,25 @@ SUBROUTINE hdcheck(a,b,d,e,t,ordvf,ordvh)
   CALL inerprod(c1,b,0,fenk)  ! integrates v*theta
 
   CALL energy(d,enk2,1)
-  CALL energy(d,denk2,1+ordvf)
-  CALL derivk2(d,c1,1)
-  CALL inerprod(c1,e,0,fenk2)
+  !CALL energy(d,denk2,1+ordvf) wrong
+  !! Mfen
+  CALL derivk2(e,c1,1)
+  CALL inerprod(d,c1,0,Mfen)
+  !! MNL1
+  CALL laplak2(a,c1)
+  CALL poisson(d,c1,c1)
+  CALL inerprod(d,c1,0,MNL1)
+  !! MNL2
+  CALL laplak2(d,c1)
+  CALL poisson(a,c1,c1)
+  CALL inerprod(d,c1,0,MNL2)
+  !! MDis
+  DO i = ista,iend
+    DO j = 1,ny
+      c1(j,i) = (kk2(j,i)+(2.0d0*pi/Wid)**2)*kk2(j,i)*d(j,i)
+    END DO
+  END DO
+  CALL inerprod(d,C1,0,MDis)
 
   !
   ! Computes the mean potential energy
@@ -541,7 +561,20 @@ SUBROUTINE hdcheck(a,b,d,e,t,ordvf,ordvh)
   CALL energy(b,denp,ordvf)
 
   CALL energy(e,enp2,0)
-  CALL energy(e,denp2,ordvf)
+  !CALL energy(e,denp2,ordvf) wrong !
+  !!!
+  CALL poisson(a,e,c1)
+  CALL inerprod(e,c1,0,ENL1)
+  !!!
+  CALL poisson(d,b,c1)
+  CALL inerprod(e,C1,0,ENL2)
+  !!!
+  DO i = ista,iend
+    DO j = 1,ny
+      c1(j,i) = -(kk2(j,i)+(2.0d0*pi/Wid)**2)*e(j,i)
+    END DO
+  END DO
+  CALL inerprod(e,c1,0,EDis)
 
   !
   ! Creates external files to store the results
@@ -556,10 +589,10 @@ SUBROUTINE hdcheck(a,b,d,e,t,ordvf,ordvh)
     CLOSE(1)
 
     OPEN(1,file=trim(cdir)//'/kenergy2.txt',position='append')
-    WRITE(1,20) t,enk2,denk2,fenk2
+    WRITE(1,20) t,enk2,Mfen,MNL1,MNL2,MDis
     CLOSE(1)
     OPEN(1,file=trim(cdir)//'/penergy2.txt',position='append')
-    WRITE(1,20) t,enp2,denp2
+    WRITE(1,20) t,enp2,ENL1,ENL2,EDis
     CLOSE(1)
   ENDIF
 
