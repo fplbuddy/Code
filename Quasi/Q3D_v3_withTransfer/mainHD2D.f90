@@ -594,7 +594,7 @@ PROGRAM HD2D
     ! to check consistency and convergency. See the
     ! mhdcheck subroutine for details.
     IF (timec.eq.cstep) THEN
-      CALL hdcheck(ps,theta2,ph,thetav,time,ordvf,ordvh)
+      CALL hdcheck(ps,theta2,ph,thetav,time,ordvf,ordvh,Wid)
       timec = 0
     ENDIF
 
