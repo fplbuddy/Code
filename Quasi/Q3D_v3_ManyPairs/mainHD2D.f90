@@ -458,7 +458,22 @@ PROGRAM HD2D
               C6(j,i) = thetav(j+ny*(k-1),i)
             END DO
           END DO
-          CALL hdcheckperp(ps,theta2,C5,C6,time,filename1,filename2,k,check,Wid)
+          ! Extracing the 2d field we want
+          DO i = ista,iend
+            DO j = 1,ny
+              IF (psimodei(k).eq.i.and.psimodej(k).eq.j) THEN
+                C1(j,i) = ps(j,i)
+              ELSE
+                C1(j,i) = 0.0d0
+              end if
+              IF (thetamodei(k).eq.i.and.thetamodej(k).eq.j) THEN
+                C2(j,i) = theta2(j,i)
+              ELSE
+                C2(j,i) = 0.0d0
+              end if
+            END DO
+          END DO
+          CALL hdcheckperp(C1,C2,C5,C6,time,filename1,filename2,k,check,Wid)
           CALL MPI_BCAST(check,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
           cont(k) = check ! updating if we want to continue
         end if
