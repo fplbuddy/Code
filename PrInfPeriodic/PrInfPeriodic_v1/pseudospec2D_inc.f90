@@ -932,7 +932,7 @@
 
 
       !*****************************************************************
-            SUBROUTINE makeps(a,hnu,ordvf,ordvh,b)
+            SUBROUTINE makeps(a,ordvf,ordvh,b)
       !-----------------------------------------------------------------
       !
       ! Two-dimensional derivative of the matrix 'a'
@@ -953,13 +953,12 @@
 
             DOUBLE COMPLEX, DIMENSION(n,ista:iend) :: a,b
             INTEGER :: ordvf, ordvh
-            DOUBLE PRECISION :: hnu
             INTEGER :: i,j
 
                DO i = ista,iend
                   DO j = 1,n
                      IF ((ka2(j,i).le.kmax).and.(ka2(j,i).ge.tiny)) THEN
-                        b(j,i) = -im*ka(i)*a(j,i)/((-ka2(j,i))**(ordvf+1)+hnu*(-ka2(j,i))**(1-ordvh))
+                        b(j,i) = -im*ka(i)*a(j,i)/((-ka2(j,i))**(ordvf+1)+(-ka2(j,i))**(1-ordvh))
                      ELSE
                         b(j,i) = 0.0d0
                      ENDIF

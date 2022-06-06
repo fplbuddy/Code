@@ -3,7 +3,6 @@
   ./Spectra
   ./Transfers
   x.xex              % Ra
-  x.x                % Rhnu
   100000             % step
   10000              % tstep
   1000               % sstep

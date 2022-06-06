@@ -72,7 +72,7 @@
       DOUBLE PRECISION :: theta0
       DOUBLE PRECISION :: time,timef
       DOUBLE PRECISION :: cort
-      DOUBLE PRECISION :: hnu,kappa, Ra, Rhnu
+      DOUBLE PRECISION :: kappa, Ra
       DOUBLE PRECISION :: phase1,phase2
 
       INTEGER :: mult,stat
@@ -162,7 +162,6 @@
          READ(1,'(a100)') sdir              ! 29
          READ(1,'(a100)') tdir              ! 30
          READ(1,*) Ra                       ! 15
-         READ(1,*) Rhnu                      ! 17
          READ(1,*) step                     ! 2
          READ(1,*) tstep                    ! 3
          READ(1,*) sstep                    ! 4
@@ -195,7 +194,6 @@
       CALL MPI_BCAST(ordvf,  1,MPI_INTEGER,         0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(ordvh,  1,MPI_INTEGER,         0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(   Ra,  1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-      CALL MPI_BCAST(  Rhnu,  1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST( cort,  1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST( seed,  1,MPI_INTEGER,         0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST( prm1,  1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
@@ -209,9 +207,7 @@
 
         ! Calculating nu and kappa and d
   kappa = (2*pi)**(4*ordvf-1)/Ra
-  hnu = Rhnu/(2*pi)**(2*(ordvf+ordvh)) ! have set nu = 1
   CALL MPI_BCAST(   kappa,  1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-  CALL MPI_BCAST(   hnu,  1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 !
 ! Some numerical constants
 
@@ -345,7 +341,7 @@
 ! Uses Runge-Kutta of order 'ord'
 !#################### MAIN LOOP ######################
  RK : DO t = ini,step
-      CALL makeps(theta,hnu,ordvf,ordvh,C1) ! make ps inn C1
+      CALL makeps(theta,ordvf,ordvh,C1) ! make ps inn C1
       CALL CFL_condition(C1,kappa,CFL,ord,ordvf,dt)
 !      print*,t
 
@@ -460,7 +456,7 @@
 ! Runge-Kutta step 2
 
          DO o = ord,2,-1
-         CALL makeps(C2,hnu,ordvf,ordvh,C1) ! make ps
+         CALL makeps(C2,ordvf,ordvh,C1) ! make ps
          CALL poisson(C1,C2,C4)  ! make u grad theta
 
          DO i = ista,iend
@@ -482,7 +478,7 @@
 ! Copies the result from the auxiliary matrixes into ps, az
 
          o = 1
-         CALL makeps(C2,hnu,ordvf,ordvh,C1) ! make ps
+         CALL makeps(C2,ordvf,ordvh,C1) ! make ps
          CALL poisson(C1,C2,C4)  ! make u grad theta
 
          DO i = ista,iend
