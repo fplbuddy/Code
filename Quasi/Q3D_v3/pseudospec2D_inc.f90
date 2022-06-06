@@ -580,12 +580,23 @@ SUBROUTINE hdcheck(a,b,d,e,t,ordvf,ordvh,Wid)
   ! Creates external files to store the results
   !
   IF (myrank.eq.0) THEN
+    nrm = 1.0_GP/(real(nx,kind=GP)*real(ny,kind=GP))
     OPEN(1,file=trim(cdir)//'/kenergy.txt',position='append')
-    WRITE(1,20) t,enk,denk,fenk,REAL(a(1,1))*1.0_GP/(real(nx,kind=GP)*real(ny,kind=GP))
-    20    FORMAT( E23.14E3,E23.14E3,E23.14E3,E23.14E3,E23.14E3,E23.14E3,E23.14E3,E23.14E3 )
+    WRITE(1,20) t,enk,denk,fenk,REAL(a(1,1))*nrm, &
+                                REAL(a(2,1))*nrm, &
+                                REAL(a(3,1))*nrm, &
+                                REAL(a(4,1))*nrm, &
+                                REAL(a(1,2))*nrm, &
+                                AIMAG(a(1,2))*nrm
+    20    FORMAT( E23.14E3,E23.14E3,E23.14E3,E23.14E3,E23.14E3,E23.14E3,E23.14E3,E23.14E3,E23.14E3,E23.14E3)
     CLOSE(1)
     OPEN(1,file=trim(cdir)//'/penergy.txt',position='append')
-    WRITE(1,20) t,enp,denp
+    WRITE(1,20) t,enp,denp,REAL(b(1,1))*nrm, &
+                           REAL(b(2,1))*nrm, &
+                           REAL(b(3,1))*nrm, &
+                           REAL(b(4,1))*nrm, &
+                           REAL(b(1,2))*nrm, &
+                           AIMAG(b(1,2))*nrm
     CLOSE(1)
 
     OPEN(1,file=trim(cdir)//'/kenergy2.txt',position='append')
