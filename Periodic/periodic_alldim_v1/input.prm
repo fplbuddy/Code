@@ -2,8 +2,8 @@
   ./Checks
   ./Spectra
   ./Transfers
-  x.xex              % nu
-  x.x               % kappa
+  x.xex              % Ra
+  x.x               % Pr
   x.x                % mu
   100000             % step
   10000              % tstep

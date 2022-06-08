@@ -75,7 +75,7 @@
       DOUBLE PRECISION :: f0,u0,theta0
       DOUBLE PRECISION :: time,timef
       DOUBLE PRECISION :: cort
-      DOUBLE PRECISION :: nu,hnu,kappa,DTT
+      DOUBLE PRECISION :: nu,hnu,kappa,DTT, Ra, Pr
       DOUBLE PRECISION :: phase1,phase2
 
       INTEGER :: mult,stat
@@ -169,8 +169,8 @@
          READ(1,'(a100)') cdir              ! 28
          READ(1,'(a100)') sdir              ! 29
          READ(1,'(a100)') tdir              ! 30
-         READ(1,*) nu                      ! 15
-         READ(1,*) kappa                      ! 17
+         READ(1,*) Ra                      ! 15
+         READ(1,*) Pr                      ! 17
          READ(1,*) hnu                      ! 17
          READ(1,*) step                     ! 2
          READ(1,*) tstep                    ! 3
@@ -215,8 +215,8 @@
       CALL MPI_BCAST( kfdn,  1,MPI_INTEGER,         0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(ordvf,  1,MPI_INTEGER,         0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(ordvh,  1,MPI_INTEGER,         0,MPI_COMM_WORLD,ierr)
-      CALL MPI_BCAST(   nu,  1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-      CALL MPI_BCAST(  kappa,  1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(   Ra,  1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(  Pr,  1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(iflow,  1,MPI_INTEGER,         0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(ftype,  1,MPI_INTEGER,         0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST( cort,  1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
@@ -228,6 +228,13 @@
       CALL MPI_BCAST( sdir,100,MPI_CHARACTER,       0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST( tdir,100,MPI_CHARACTER,       0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(   hnu,  1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+
+
+
+      nu = sqrt((pi*2)**3*Pr/Ra)
+      kappa = sqrt((pi*2)**3/(Ra*Pr))
+      CALL MPI_BCAST(   nu,  1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(  kappa,  1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 
 !
 ! Some numerical constants
